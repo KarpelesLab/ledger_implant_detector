@@ -61,6 +61,10 @@ test). The wallet's own ground plane, battery, Bluetooth antenna and NFC coil
 all produce responses of their own, and a hidden antenna's resonance shifts
 with its surroundings.
 
+A later revision is meant to integrate the RF sweep so no external VNA is
+needed. The measurements in [docs/rf_measurements.md](docs/rf_measurements.md)
+will decide whether a magnitude-only front end is enough or phase is needed.
+
 ## Board
 
 | Top | Bottom (sensing side) |
@@ -224,7 +228,9 @@ order:
 - [ ] Whether the solid In1 GND shield behind the electrodes costs too much range
       (alternatives: hatched shield, active shield driver).
 - [ ] Electrode size / pitch trade-off (resolution vs. range).
-- [ ] RF loop: usable frequency range and repeatability with NanoVNA-class instruments.
+- [ ] RF loop: usable frequency range and repeatability with NanoVNA-class instruments, and
+      what an on-board (VNA-less) front end would need. See
+      [docs/rf_measurements.md](docs/rf_measurements.md) and `tools/analyze_s1p.py`.
 - [ ] ROM DFU on the TSSOP-20 STM32F042 (see above).
 - [ ] Reference signatures for each Ledger model.
 
