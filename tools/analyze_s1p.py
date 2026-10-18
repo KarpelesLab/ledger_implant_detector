@@ -2,6 +2,7 @@
 """Compare NanoVNA S11 sweeps of the near-field loop: reference vs. unit under test.
 
     python3 tools/analyze_s1p.py --ref ref_*.s1p --test test_*.s1p [--air air.s1p]
+    python3 tools/analyze_s1p.py --s21 --ref ref_*.s2p --test test_*.s2p   # transmission instead
 
 Several files per group = repeated placements. The spread inside the
 reference group is the repeatability floor; a test/reference difference only
@@ -26,8 +27,8 @@ BANDS = [  # name, start Hz, stop Hz
 ]
 
 
-def read_s1p(path):
-    """Minimal Touchstone v1 reader -> (freq Hz, complex S11)."""
+def read_s1p(path, param=0):
+    """Minimal Touchstone v1 reader -> (freq Hz, complex S11), or S21 of a .s2p with param=1."""
     unit, fmt = 1.0, 'MA'
     mult = {'HZ': 1, 'KHZ': 1e3, 'MHZ': 1e6, 'GHZ': 1e9}
     f, a, b = [], [], []
@@ -45,8 +46,8 @@ def read_s1p(path):
             continue
         v = line.split()
         f.append(float(v[0]) * unit)
-        a.append(float(v[1]))
-        b.append(float(v[2]))
+        a.append(float(v[1 + 2 * param]))
+        b.append(float(v[2 + 2 * param]))
     f, a, b = map(np.array, (f, a, b))
     if fmt == 'RI':
         s = a + 1j * b
@@ -57,8 +58,8 @@ def read_s1p(path):
     return f, s
 
 
-def load_group(paths):
-    data = [read_s1p(p) for p in paths]
+def load_group(paths, param=0):
+    data = [read_s1p(p, param) for p in paths]
     f0 = data[0][0]
     out = []
     for p, (f, s) in zip(paths, data):
@@ -78,10 +79,12 @@ def main():
     ap.add_argument('--test', nargs='+', required=True, help='unit under test (or genuine + mock antenna)')
     ap.add_argument('--air', nargs='*', default=[], help='probe in free air (optional)')
     ap.add_argument('--plot', help='write a PNG plot (needs matplotlib)')
+    ap.add_argument('--s21', action='store_true', help='compare S21 of .s2p files (probe -> receive antenna)')
     a = ap.parse_args()
+    param = 1 if a.s21 else 0
 
-    f, ref = load_group(a.ref)
-    _, test = load_group(a.test)
+    f, ref = load_group(a.ref, param)
+    _, test = load_group(a.test, param)
     if test.shape[1] != len(f):
         sys.exit('ref and test sweeps must cover the same frequencies')
 
@@ -127,7 +130,11 @@ def main():
     elif best[2] >= SNR_MIN and best[1] >= 0.5:
         print('verdict: MAGNITUDE-ONLY is enough (%s: %.2f dB, %.0fx the placement spread).'
               % (best[0], best[1], best[2]))
-        print('         -> scalar front end: PLL synth + reflection bridge + log detector (e.g. ADF4351 + AD8318).')
+        if a.s21:
+            print('         -> scalar front end: PLL synth drives the probe, log detector on a receive antenna'
+                  ' (e.g. ADF4351 + AD8318).')
+        else:
+            print('         -> scalar front end: PLL synth + reflection bridge + log detector (e.g. ADF4351 + AD8318).')
     elif bestv[3] >= SNR_MIN:
         print('verdict: magnitude change too small/noisy, but the COMPLEX S11 change is clear (%s, %.0fx).' % (bestv[0], bestv[3]))
         print('         -> needs magnitude + phase: AD8302-class gain/phase detector, or a NanoVNA-style mixer front end.')
@@ -148,15 +155,15 @@ def main():
         for s in test:
             ax[0].plot(f / 1e6, db(s), color='tab:red', alpha=0.35, lw=0.8)
         if a.air:
-            _, air = load_group(a.air)
+            _, air = load_group(a.air, param)
             ax[0].plot(f / 1e6, db(air.mean(0)), color='0.5', lw=1, label='free air')
         ax[0].plot(f / 1e6, db(ref_mean), color='tab:blue', lw=1.6, label='reference')
         ax[0].plot(f / 1e6, db(test_mean), color='tab:red', lw=1.6, label='test')
-        ax[0].set_ylabel('|S11| (dB)')
+        ax[0].set_ylabel('|S21| (dB)' if a.s21 else '|S11| (dB)')
         ax[0].legend()
         ax[1].plot(f / 1e6, d_mag, color='tab:red', lw=1.2, label='test - ref (dB)')
         ax[1].fill_between(f / 1e6, -3 * ref_mag_sd, 3 * ref_mag_sd, color='tab:blue', alpha=0.2, label='3x placement spread')
-        ax[1].set_ylabel('d|S11| (dB)')
+        ax[1].set_ylabel('d|S21| (dB)' if a.s21 else 'd|S11| (dB)')
         ax[1].set_xlabel('MHz')
         ax[1].legend()
         for _, lo, hi in BANDS[:3]:
