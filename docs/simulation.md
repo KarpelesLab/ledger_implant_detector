@@ -70,27 +70,31 @@ variation are.)
    signatures. A fixed threshold on raw capacitance would be useless. The tool
    must press the wallet flat (jig / spring clamp) and the firmware must judge
    the **shape** of the 8-channel signature, not its size.
-2. **Antenna copper outside the battery's shadow is clearly detectable.** It
+2. **Antenna copper extending beyond the battery's outline is clearly detectable.** It
    gives a positive bump on the electrode over it while its neighbours go
    slightly negative. No air gap or slide produces that pattern. About 0.4–0.9 pF
    is left after removing the worst plausible placement error.
-3. **An antenna fully hidden behind the battery and electrically floating is
-   invisible capacitively.** Antenna and foil are 0.15 mm apart over a large
-   area, so at the FDC2214's ~6 MHz they behave as one conductor. The only
-   remaining effect is "the battery sits 0.15 mm deeper", which looks like
-   an air gap or a slightly thicker glue line in a genuine unit (~50 fF of
-   shape difference).
+3. **An antenna entirely within the battery's outline and electrically floating
+   is invisible capacitively.** The copper is always between the shell and the
+   battery, so from the detector it is *in front of* the foil. But it sits
+   almost exactly where the foil's front face is in a genuine unit, and the
+   antenna and foil are 0.15 mm apart over a large area (~40 pF between them),
+   so at the FDC2214's ~6 MHz they behave as one conductor. The only remaining
+   effect is "the battery sits 0.15 mm deeper", which looks like an air gap or
+   a slightly thicker glue line in a genuine unit (~50 fF of shape
+   difference).
 4. **If the antenna's coax shield is tied to a large ground** (e.g. the
    implant takes power from the Ledger's battery, so its ground is the
-   wallet's ground), the antenna becomes detectable even under the battery.
+   wallet's ground), the antenna becomes detectable even within the battery's
+   outline.
    The grounded figures in the table are an upper bound, because the model's
    ground is ideal.
 5. A thinner back (Flex / Stax, 0.6 mm) roughly doubles every effect, both
    signal and placement sensitivity.
 
 A working LTE antenna lying flat on a battery foil 0.15 mm away would barely
-radiate. So a real implant probably *needs* part of its antenna outside the
-battery outline, which is the case the array detects. The RF simulation below
+radiate. So a real implant probably *needs* part of its antenna beyond the
+battery's outline, which is the case the array detects. The RF simulation below
 is meant to check that.
 
 ## 2. Near-field RF loop (`sim/rf_fdtd.py`)
@@ -118,9 +122,10 @@ which `tools/analyze_s1p.py` reads like NanoVNA files.
 
 Measure or photograph these on the tampered unit:
 
-- **The battery's outline relative to the antenna.** Does any part of the
-  antenna stick out beyond the pouch, and where? This decides between "clearly
-  detectable" and "capacitively invisible" above.
+- **The battery's outline relative to the antenna.** The copper is always
+  between shell and battery; the question is how much of it extends beyond the
+  pouch's outline, and where. This decides between "clearly detectable" and
+  "capacitively invisible" above.
 - **Where the coax goes and what the implant's ground connects to.** Is it
   wired to the Ledger's battery or board ground?
 - The exact antenna dimensions, the plastic thickness and the battery size. The

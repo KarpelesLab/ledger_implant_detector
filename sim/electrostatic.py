@@ -43,8 +43,8 @@ GLUE = 0.05          # adhesive between shell and whatever is glued to it
 FPC_T = 0.15         # antenna flex thickness (copper ~ in the middle)
 BATT_T = 4.0
 BATTERIES = {        # pouch footprints to test
-    'batt_covers_all': (39.0, 83.0, 3.0, 19.0),     # antenna completely in the battery's shadow
-    'batt_35x15': (38.0, 73.0, 3.5, 18.5),          # arm hidden, most of the feed patch outside
+    'batt_covers_all': (39.0, 83.0, 3.0, 19.0),     # antenna entirely within the battery's outline
+    'batt_35x15': (38.0, 73.0, 3.5, 18.5),          # arm within the outline, most of the feed patch outside it
 }
 PCB_PLATE = (16.0, 80.0, 3.3, 18.3)   # wallet main board ground, below the battery
 
