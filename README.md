@@ -74,7 +74,11 @@ clearly detectable, above any plausible placement error. Copper lying entirely
 within the battery's outline (it is always glued between the shell and the
 battery) and electrically floating is not detectable capacitively.
 Placement (air gap) dominates the raw signal, so the wallet must be pressed flat
-and judged by the *shape* of the 8-channel signature.
+and judged by the *shape* of the 8-channel signature. The RF loop over the
+antenna's feed area shows a narrow in-band absorption dip (~0.35 dB, at ~1.8 GHz
+in the model) that a plain-copper piece of the same outline does not. That
+feature tells an antenna apart from a battery or other metal, and is within
+reach of a scalar, VNA-less front end.
 
 ## Board
 

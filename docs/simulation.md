@@ -116,7 +116,74 @@ It runs at three loop positions (over the patch, mid-arm, arm tip) and for
 both battery cases. The output is S11 as `.s1p` files in `sim/results/rf/`,
 which `tools/analyze_s1p.py` reads like NanoVNA files.
 
-*Results: run in progress; this section will be filled in.*
+![raw S11](img/sim_rf_raw.png)
+
+![RF differences](img/sim_rf.png)
+
+Rows: loop over the feed patch (which, in the 35 × 15 battery case, extends
+beyond the battery's outline), over the middle of the arm, and over the arm
+tip; the arm lies within the battery's outline. Left: change in |S11| against
+the genuine unit. Right: change in phase.
+
+| loop position | case | 699–960 MHz | 1710–2200 MHz | 2300–2690 MHz |
+|---|---|---|---|---|
+| over the patch | tampered (antenna, 50 Ω modem) | 0.01 dB | **0.35 dB** dip at 1.8 GHz | 0.10 dB |
+| over the patch | control: plain copper, same outline | 0.01 dB | 0.06 dB | 0.10 dB |
+| over the arm | tampered / copper | < 0.01 dB | 0.01 dB | 0.03 dB |
+| over the arm tip | tampered / copper | < 0.01 dB | 0.01 dB | 0.02 dB |
+
+### What this says
+
+1. **A tuned, loaded antenna has a signature that plain metal does not.**
+   Over the feed patch the tampered unit shows a narrow absorption dip at
+   ~1.8 GHz (LTE band 3), about 0.35–0.4 dB deep and ~100 MHz wide. The
+   plain-copper control with the same outline has no dip, and neither does the
+   genuine unit with its battery. It only shows the same broad shift around
+   2.9 GHz that any extra copper causes. This is exactly the discrimination
+   the capacitive array cannot make: **copper vs. an antenna**.
+2. **The exact frequency is not trustworthy.** It depends on the real slot
+   pattern, which is approximated from a photo, and on the modem's real input
+   impedance. The mechanism is what matters: look for a *narrow, in-band
+   absorption feature* that a genuine reference does not have.
+3. **Copper lying on the battery foil is RF-dead.** Over the arm, which lies
+   within the battery's outline, changes stay below 0.1 dB at every
+   frequency. When the battery covers the whole antenna, the 1.8 GHz dip
+   disappears too. An antenna in that position would not work as an antenna,
+   which again suggests a real implant needs copper beyond the battery's
+   outline.
+4. **The probe has to sit over the right spot.** The feature is local to
+   the feed patch. It is ~0.4 dB at 2.7 mm from the copper and fades within a
+   few mm. Scanning (or a small array of loops) is needed.
+5. **The loop's own self-resonance (~2.9 GHz over a wallet, 3.4 GHz in air)
+   sits close to the upper LTE band.** Any copper shifts it, so it causes
+   broad differences there. For the integrated rev 0.2 a smaller or
+   differently loaded loop should push it above ~3.5 GHz.
+
+### Implication for a VNA-less front end (rev 0.2)
+
+A 0.35 dB dip, narrow in frequency, sitting on a smooth baseline is a
+**magnitude** feature. A scalar front end (PLL synthesizer + reflection bridge
++ log detector) with ~0.05 dB short-term resolution, sweeping 0.6–3 GHz in
+~5 MHz steps, should resolve it. The decision rule is "a narrow dip that the
+reference sweep does not have", which is insensitive to the broadband
+placement effects that dominate the capacitive channel. Phase would help but
+does not look necessary, subject to NanoVNA measurements on the real unit
+(see [rf_measurements.md](rf_measurements.md)). The simulated `.s1p` files in
+`sim/results/rf/` can be compared directly with those measurements.
+
+## Combined picture
+
+| | capacitive array | RF loop |
+|---|---|---|
+| copper beyond the battery's outline | **detects it** (0.4–0.9 pF above placement error) | detects extra copper (broad shift) |
+| tells an antenna from plain copper | no | **yes**: narrow in-band absorption at the feed |
+| copper entirely within the battery's outline | no (≈ 50 fF, looks like glue thickness) | no (< 0.1 dB), but such an antenna would barely radiate |
+| main error source | air gap / placement (0.1 mm → −0.7 pF) | probe position over the feed area |
+
+The two channels are complementary. The capacitive array finds copper
+*where a genuine unit has none*. The RF sweep checks whether that copper
+*behaves like a loaded antenna*, which is what rules out false positives
+from batteries, shields and other plain metal.
 
 ## Unknowns that change the conclusions
 
