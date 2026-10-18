@@ -1,0 +1,10 @@
+*-backups/
+*.kicad_prl
+*.lck
+_autosave-*
+fp-info-cache
+*.bak
+__pycache__/
+*.dsn
+*.ses
+freerouting*.log
