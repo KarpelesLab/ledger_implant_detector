@@ -126,7 +126,8 @@ class Sim:
         self.sig = np.zeros((nx, ny, nz), np.float32)     # S/mm
         self.pec = {c: np.zeros(s, bool) for c, s in (('x', (nx, ny + 1, nz + 1)), ('y', (nx + 1, ny, nz + 1)),
                                                        ('z', (nx + 1, ny + 1, nz)))}
-        self.lumped = []   # (comp, i, j, k, R, is_port)
+        self.lumped = []   # (comp, i, j, k, R, is_port, is_probe)
+        self.inductors = []  # (comp, i, j, k, L)
 
     # --- geometry helpers (snap to the grid) ---
     def _ci(self, a, lo, hi):
@@ -137,10 +138,46 @@ class Sim:
         return np.where((a >= lo - 1e-6) & (a <= hi + 1e-6))[0]
 
     def zi(self, z):
-        i = int(np.argmin(np.abs(self.z - z)))
-        if abs(self.z[i] - z) > 1e-3:
-            raise ValueError('z=%g not a grid plane' % z)
+        return self.ni('z', z)
+
+    def ni(self, ax, v):
+        a = getattr(self, ax)
+        i = int(np.argmin(np.abs(a - v)))
+        if abs(a[i] - v) > 1e-3:
+            raise ValueError('%s=%g not a grid plane' % (ax, v))
         return i
+
+    def plane(self, normal, coord, inside):
+        """PEC sheet in the plane `normal` = coord: every in-plane edge whose two end nodes
+        satisfy inside(X, Y, Z) (X, Y, Z: node coordinates of that plane)."""
+        i = self.ni(normal, coord)
+        if normal == 'z':
+            X, Y = np.meshgrid(self.x, self.y, indexing='ij')
+            m = inside(X, Y, np.full_like(X, coord))
+            self.pec['x'][:, :, i] |= m[:-1, :] & m[1:, :]
+            self.pec['y'][:, :, i] |= m[:, :-1] & m[:, 1:]
+        elif normal == 'y':
+            X, Z = np.meshgrid(self.x, self.z, indexing='ij')
+            m = inside(X, np.full_like(X, coord), Z)
+            self.pec['x'][:, i, :] |= m[:-1, :] & m[1:, :]
+            self.pec['z'][:, i, :] |= m[:, :-1] & m[:, 1:]
+        else:
+            Y, Z = np.meshgrid(self.y, self.z, indexing='ij')
+            m = inside(np.full_like(Y, coord), Y, Z)
+            self.pec['y'][i, :, :] |= m[:-1, :] & m[1:, :]
+            self.pec['z'][i, :, :] |= m[:, :-1] & m[:, 1:]
+
+    def edge(self, p, q):
+        """The single Yee edge between grid nodes p and q (adjacent along one axis)."""
+        a = [self.ni(ax, v) for ax, v in zip('xyz', p)]
+        b = [self.ni(ax, v) for ax, v in zip('xyz', q)]
+        d = [bb - aa for aa, bb in zip(a, b)]
+        ax = [n for n in range(3) if d[n]]
+        if len(ax) != 1 or abs(d[ax[0]]) != 1:
+            raise ValueError('nodes %s %s are not neighbours' % (p, q))
+        n = ax[0]
+        lo = [min(aa, bb) for aa, bb in zip(a, b)]
+        return ('xyz'[n], lo[0], lo[1], lo[2])
 
     def dielectric(self, box, z0, z1, er, tand=0.0, f0=1.5e9):
         ix, iy, iz = self._ci(self.x, box[0], box[1]), self._ci(self.y, box[2], box[3]), self._ci(self.z, z0, z1)
@@ -183,10 +220,18 @@ class Sim:
         self.pec['x'][ig - 1, jc, k] = True                          # bridge: PEC edge + port edge
         return ('x', ig, jc, k)
 
-    def add_lumped(self, edge, R, port=False):
+    def add_lumped(self, edge, R, port=False, probe=False):
+        """Lumped resistor on one edge; port=True makes it the Thevenin source, probe=True
+        records the voltage across it (a terminated second port: S21 = 2 V / Vs)."""
         c, i, j, k = edge
         self.pec[c][i, j, k] = False
-        self.lumped.append((c, i, j, k, R, port))
+        self.lumped.append((c, i, j, k, R, port, probe))
+
+    def add_inductor(self, edge, L):
+        """Lumped inductor (henry) on one edge, e.g. a matching coil in series with a load."""
+        c, i, j, k = edge
+        self.pec[c][i, j, k] = False
+        self.inductors.append((c, i, j, k, L))
 
     # --- run ---
     def prepare(self):
@@ -247,7 +292,8 @@ class Sim:
             self.co['db' + c] = ((dt / MU0) / (1 + am)).astype(np.float32)
         # lumped elements: semi-implicit resistor (+ Thevenin source on the port)
         self.src = []
-        for c, i, j, k, R, port in self.lumped:
+        self.probes = []
+        for c, i, j, k, R, port, probe in self.lumped:
             if c == 'x':
                 dl, A = dx[i], dyd[j] * dzd[k]
             elif c == 'y':
@@ -260,6 +306,18 @@ class Sim:
             self.co['cb' + c][i, j, k] = (dt / e) / (1 + a)
             if port:
                 self.port = (c, i, j, k, dl, R, (dt / (e * R * A)) / (1 + a))
+            if probe:
+                self.probes.append((c, i, j, k, dl))
+        self.coils = []
+        for c, i, j, k, Lh in self.inductors:
+            if c == 'x':
+                dl, A = dx[i], dyd[j] * dzd[k]
+            elif c == 'y':
+                dl, A = dy[j], dxd[i] * dzd[k]
+            else:
+                dl, A = dz[k], dxd[i] * dyd[j]
+            e = avg(ep, c)[i, j, k] * EPS0
+            self.coils.append((c, i, j, k, dl, dt / Lh, dt / (e * A)))
 
     def run(self, t_end=30e-9, fmin=0.4e9, fmax=3.6e9, nf=641, threads=4, log=None):
         set_num_threads(threads)
@@ -282,16 +340,26 @@ class Sim:
         tau = math.sqrt(2.3) / (math.pi * fmax)
         t0 = 4.5 * tau
         V = np.zeros(nsteps)
+        P = np.zeros((len(self.probes), nsteps))
+        PE = [({'x': Ex, 'y': Ey, 'z': Ez}[pc], pi, pj, pk, pdl) for pc, pi, pj, pk, pdl in self.probes]
+        CE = [({'x': Ex, 'y': Ey, 'z': Ez}[cc], ci, cj, ck, cdl, cg, cs) for cc, ci, cj, ck, cdl, cg, cs in self.coils]
+        IL = [0.0] * len(CE)
         tstart = time.time()
         for n in range(nsteps):
             update_h(Hx, Hy, Hz, Ex, Ey, Ez, co['dax'], co['dbx'], co['day'], co['dby'], co['daz'], co['dbz'],
                      idx, idy, idz)
             ts = (n + 0.5) * dt
             vs = math.exp(-((ts - t0) / tau) ** 2)
+            for m, (ca_, ci, cj, ck, cdl, cg, cs) in enumerate(CE):
+                IL[m] += cg * ca_[ci, cj, ck] * cdl          # I^(n+1/2) = I^(n-1/2) + dt/L V^n
             update_e(Ex, Ey, Ez, Hx, Hy, Hz, co['cax'], co['cbx'], co['cay'], co['cby'], co['caz'], co['cbz'],
                      idxd, idyd, idzd)
+            for m, (ca_, ci, cj, ck, cdl, cg, cs) in enumerate(CE):
+                ca_[ci, cj, ck] -= cs * IL[m]
             E[i, j, k] += sc * vs
             V[n] = E[i, j, k] * dl
+            for m, (pa, pi, pj, pk, pdl) in enumerate(PE):
+                P[m, n] = pa[pi, pj, pk] * pdl
             if log and n and n % 5000 == 0:
                 log('    step %d/%d  %.0f s' % (n, nsteps, time.time() - tstart))
         # discrete Thevenin relation of the semi-implicit port: I = (Vs^(n+1/2) - (V^n + V^(n+1))/2) / R
@@ -306,6 +374,9 @@ class Sim:
         Z = Vf * R / (Vsf - Vf)
         S11 = (Z - R) / (Z + R)
         self.tail = float(np.abs(V[-nsteps // 20:]).max() / np.abs(V).max())
+        # terminated probe ports: b2 = V2 (no incident wave), a1 = Vs / 2
+        Ph = (P + np.concatenate([np.zeros((len(PE), 1)), P[:, :-1]], 1)) / 2
+        self.S21 = [2 * (ker @ ph[::dec]) / Vsf for ph in Ph]
         return f, S11, Z
 
 

@@ -1,0 +1,34 @@
+** Drc report for slot.kicad_pcb **
+** Created on 2026-10-19T08:53:25 **
+** Report includes: Errors, Warnings **
+
+** Found 4 DRC violations **
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(221.0000 mm, 250.0000 mm): Segment on Edge.Cuts
+    @(150.0000 mm, 249.6600 mm): Segment of J2 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(221.0000 mm, 250.0000 mm): Segment on Edge.Cuts
+    @(150.2500 mm, 250.1600 mm): Segment of J2 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(79.0000 mm, 50.0000 mm): Segment on Edge.Cuts
+    @(149.7500 mm, 49.8400 mm): Segment of J1 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(79.0000 mm, 50.0000 mm): Segment on Edge.Cuts
+    @(150.0000 mm, 50.3400 mm): Segment of J1 on F.Silkscreen
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** Ignored checks **
+    - Footprint has no courtyard defined
+    - Track endpoint not centered on via
+    - Tuning profile track geometries
+    - Footprint doesn't match symbol's footprint filters
+    - Footprint component type doesn't match footprint pads
+
+** End of Report **

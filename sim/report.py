@@ -180,6 +180,71 @@ def rf():
         print('%-6s %-11s %4.0f-%-8.0f %8.2f dB %8.1f deg %9.3f' % row)
 
 
+def fixtures():
+    """Fixture comparison (sim/fixtures_fdtd.py): S21 change tampered vs. genuine at each placement,
+    against the change a genuine wallet shows when it is merely moved."""
+    from analyze_s1p import read_s1p, db
+    d = os.path.join(HERE, 'results', 'fixtures')
+    data = {}
+    for p in glob.glob(os.path.join(d, '*.s2p')):
+        n = os.path.basename(p)[:-4]
+        if n.startswith('tune'):
+            continue
+        f, s11 = read_s1p(p)
+        _, s21 = read_s1p(p, 1)
+        data[n] = (f, s11, s21)
+    fixtures_ = sorted({n.split('_')[0] + '_' + n.split('_')[1] for n in data})
+    titles = {'cps_z2': 'slot line, wallet 2 mm above', 'cps_z12': 'slot line, wallet 12 mm above',
+              'tem_h20': 'TEM cell h = 20, wallet flat', 'tem_h25': 'TEM cell h = 25, wallet on edge'}
+    fig, axs = plt.subplots(len(fixtures_), 2, figsize=(11, 2.6 * len(fixtures_)), sharex=True, squeeze=False)
+    band = (699e6, 960e6)
+    rows = []
+    for r, fx in enumerate(fixtures_):
+        cases = sorted(n for n in data if n.startswith(fx + '_') and n.endswith('_genuine'))
+        e = data.get(fx + '_empty')
+        if e is not None:
+            f = e[0]
+            axs[r, 0].plot(f / 1e9, db(e[2]), color='0.6', lw=1, label='empty |S21|')
+            axs[r, 0].plot(f / 1e9, db(e[1]), color='0.6', lw=1, ls=':', label='empty |S11|')
+        g0 = None
+        for k, gname in enumerate(cases):
+            tname = gname[:-len('genuine')] + 'tampered'
+            if tname not in data:
+                continue
+            f, g11, g21 = data[gname]
+            _, t11, t21 = data[tname]
+            place = gname[len(fx) + 1:-len('_genuine')]
+            c = plt.cm.tab10(k)
+            axs[r, 1].plot(f / 1e9, db(t21) - db(g21), color=c, lw=1.3, label='tampered - genuine, ' + place)
+            if g0 is None:
+                g0 = (place, g21)
+            else:
+                axs[r, 1].plot(f / 1e9, db(g21) - db(g0[1]), color=c, lw=0.9, ls='--',
+                               label='genuine moved: %s - %s' % (place, g0[0]))
+            m = (f >= band[0]) & (f <= band[1])
+            dd = (db(t21) - db(g21))[m]
+            rows.append((fx, place, float(dd.max()), float(dd.min()), float(f[m][np.argmax(np.abs(dd))] / 1e6),
+                         float(np.abs(t11 - g11)[m].max())))
+        for ax in axs[r]:
+            ax.axvspan(band[0] / 1e9, band[1] / 1e9, color='0.93', zorder=0)
+            ax.axhline(0, color='k', lw=0.5)
+        axs[r, 0].set_ylabel('%s\ndB' % titles.get(fx, fx))
+        axs[r, 1].set_ylabel('d|S21| (dB)')
+        axs[r, 1].legend(fontsize=6, frameon=False, ncol=2)
+    axs[0, 0].legend(fontsize=7, frameon=False)
+    axs[0, 0].set_title('empty fixture')
+    axs[0, 1].set_title('tampered vs. genuine at the same placement (solid), genuine moved (dashed)')
+    for ax in axs[-1]:
+        ax.set_xlabel('GHz')
+        ax.set_xlim(0.3, 2.0)
+    fig.tight_layout()
+    fig.savefig(os.path.join(IMG, 'sim_fixtures.png'), dpi=130)
+    plt.close(fig)
+    print('%-8s %-16s %8s %8s %8s %8s' % ('fixture', 'placement', 'max dB', 'min dB', 'at MHz', 'max|dS11|'))
+    for row in rows:
+        print('%-8s %-16s %8.2f %8.2f %8.0f %8.3f' % row)
+
+
 if __name__ == '__main__':
     os.makedirs(IMG, exist_ok=True)
-    {'electrostatic': electrostatic, 'rf': rf}[sys.argv[1]]()
+    {'electrostatic': electrostatic, 'rf': rf, 'fixtures': fixtures}[sys.argv[1]]()

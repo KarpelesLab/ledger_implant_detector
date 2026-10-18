@@ -1,0 +1,35 @@
+** Drc report for tem_base.kicad_pcb **
+** Created on 2026-10-19T08:54:49 **
+** Report includes: Errors, Warnings **
+
+** Found 4 DRC violations **
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(216.0000 mm, 258.0000 mm): Segment on Edge.Cuts
+    @(150.0000 mm, 257.6600 mm): Segment of J2 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(216.0000 mm, 258.0000 mm): Segment on Edge.Cuts
+    @(150.2500 mm, 258.1600 mm): Segment of J2 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(84.0000 mm, 42.0000 mm): Segment on Edge.Cuts
+    @(149.7500 mm, 41.8400 mm): Segment of J1 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(84.0000 mm, 42.0000 mm): Segment on Edge.Cuts
+    @(150.0000 mm, 42.3400 mm): Segment of J1 on F.Silkscreen
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** Ignored checks **
+    - Track has unconnected end
+    - Footprint has no courtyard defined
+    - Track endpoint not centered on via
+    - Tuning profile track geometries
+    - Footprint doesn't match symbol's footprint filters
+    - Footprint component type doesn't match footprint pads
+
+** End of Report **
