@@ -1,0 +1,8 @@
+# Tested with Python 3.13. Use Python <= 3.13 with these pins: numba 0.61 needs numpy < 2.3,
+# and numpy 2.2.x silently miscomputes some array expressions on Python 3.14
+# (temporary elision mutates named locals), which corrupts the FDTD coefficients.
+numpy==2.2.6
+scipy==1.15.3
+pyamg==5.2.1
+numba==0.61.2
+matplotlib==3.10.3

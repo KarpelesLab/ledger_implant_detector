@@ -65,6 +65,16 @@ A later revision is meant to integrate the RF sweep so no external VNA is
 needed. The measurements in [docs/rf_measurements.md](docs/rf_measurements.md)
 will decide whether a magnitude-only front end is enough or phase is needed.
 
+## Simulations
+
+[docs/simulation.md](docs/simulation.md) models the real antenna (from photos of
+a tampered unit) sandwiched between the shell and the Ledger's own battery.
+Summary so far: antenna copper that sticks out beyond the battery's outline is
+clearly detectable, above any plausible placement error. Copper hidden entirely
+behind the battery and electrically floating is not detectable capacitively.
+Placement (air gap) dominates the raw signal, so the wallet must be pressed flat
+and judged by the *shape* of the 8-channel signature.
+
 ## Board
 
 | Top | Bottom (sensing side) |

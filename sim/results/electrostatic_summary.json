@@ -1,0 +1,106 @@
+[
+ {
+  "shell": "1.0",
+  "battery": "batt_covers_all",
+  "antenna": "floating",
+  "dC": [
+   1.0,
+   -254.0,
+   -316.0,
+   -271.0
+  ],
+  "residual_jig": 47.7122730241657,
+  "residual_hand-held": 47.7122730241657
+ },
+ {
+  "shell": "1.0",
+  "battery": "batt_covers_all",
+  "antenna": "grounded (upper bound)",
+  "dC": [
+   2.0,
+   190.0,
+   1094.0,
+   1390.0
+  ],
+  "residual_jig": 990.7565131956053,
+  "residual_hand-held": 591.1327416654768
+ },
+ {
+  "shell": "1.0",
+  "battery": "batt_35x15",
+  "antenna": "floating",
+  "dC": [
+   1.0,
+   -140.0,
+   56.0,
+   814.0
+  ],
+  "residual_jig": 532.5983684043458,
+  "residual_hand-held": 440.2550909528114
+ },
+ {
+  "shell": "1.0",
+  "battery": "batt_35x15",
+  "antenna": "grounded (upper bound)",
+  "dC": [
+   2.0,
+   384.0,
+   1451.0,
+   2508.0
+  ],
+  "residual_jig": 2108.281797065476,
+  "residual_hand-held": 1708.6580255353474
+ },
+ {
+  "shell": "0.6",
+  "battery": "batt_covers_all",
+  "antenna": "floating",
+  "dC": [
+   1.0,
+   -587.0,
+   -765.0,
+   -658.0
+  ],
+  "residual_jig": 47.37785359679086,
+  "residual_hand-held": 47.37785359679086
+ },
+ {
+  "shell": "0.6",
+  "battery": "batt_covers_all",
+  "antenna": "grounded (upper bound)",
+  "dC": [
+   2.0,
+   63.0,
+   1468.0,
+   2148.0
+  ],
+  "residual_jig": 1388.1456486821662,
+  "residual_hand-held": 790.7497687564753
+ },
+ {
+  "shell": "0.6",
+  "battery": "batt_35x15",
+  "antenna": "floating",
+  "dC": [
+   1.0,
+   -421.0,
+   -108.0,
+   1232.0
+  ],
+  "residual_jig": 920.910234722896,
+  "residual_hand-held": 767.4475004962941
+ },
+ {
+  "shell": "0.6",
+  "battery": "batt_35x15",
+  "antenna": "grounded (upper bound)",
+  "dC": [
+   2.0,
+   338.0,
+   2079.0,
+   4090.0
+  ],
+  "residual_jig": 3329.560674746959,
+  "residual_hand-held": 2569.578071923661
+ }
+]

@@ -1,0 +1,19 @@
+Capacitance change per electrode (fF), row under the wallet (E1..E4). Instrument floor ~0.3 fF.
+
+=== shell 1.0 mm ===
+  genuine, gap_0.1mm                       -119.11  -659.55  -805.77  -615.63
+  genuine, slide_0.5mm                       -1.71   -87.34     0.01    91.81
+  batt_covers_all, tampered                  0.61  -253.74  -315.76  -270.52
+  batt_covers_all, tampered_ant_grounded     2.43   190.38  1093.77  1390.38
+  batt_35x15, tampered                       0.77  -139.72    55.83   814.18
+  batt_35x15, tampered_ant_grounded          2.38   383.90  1451.20  2507.91
+  absolute C (genuine)                      8129    10325    10866    10143
+
+=== shell 0.6 mm ===
+  genuine, gap_0.1mm                        -98.48 -1312.63 -1640.66 -1215.08
+  genuine, slide_0.5mm                       -1.07  -144.83     0.01   152.44
+  batt_covers_all, tampered                  0.64  -586.75  -764.60  -658.16
+  batt_covers_all, tampered_ant_grounded     1.89    62.56  1468.27  2148.13
+  batt_35x15, tampered                       0.75  -420.84  -108.30  1232.40
+  batt_35x15, tampered_ant_grounded          1.81   338.37  2078.67  4089.54
+  absolute C (genuine)                      8029    11679    12636    11381
