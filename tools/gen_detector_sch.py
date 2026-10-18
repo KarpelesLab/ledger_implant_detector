@@ -14,9 +14,11 @@ C0603 = 'Capacitor_SMD:C_0603_1608Metric'
 C0805 = 'Capacitor_SMD:C_0805_2012Metric'
 
 # electrode index (1..8) -> (converter ref, channel). Row 0 = E1..E4, row 1 = E5..E8,
-# columns 1-2 on U1, columns 3-4 on U2.
-ELECTRODES = {1: ('U1', 0), 2: ('U1', 1), 5: ('U1', 2), 6: ('U1', 3),
-              3: ('U2', 0), 4: ('U2', 1), 7: ('U2', 2), 8: ('U2', 3)}
+# columns 1-2 on U1, columns 3-4 on U2. Each converter sits in the middle of its 2x2
+# cluster, rotated 180 deg (IN0/IN1 face west, IN2/IN3 face south):
+# CH0 = NW, CH1 = SW, CH2 = SE, CH3 = NE electrode.
+ELECTRODES = {1: ('U1', 0), 5: ('U1', 1), 6: ('U1', 2), 2: ('U1', 3),
+              3: ('U2', 0), 7: ('U2', 1), 8: ('U2', 2), 4: ('U2', 3)}
 
 
 def gen():

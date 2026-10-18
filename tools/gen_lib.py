@@ -90,7 +90,7 @@ def simple_symbol(name, ref, desc, fp, graphics, pins, in_bom=True, hide_pin_nam
 def electrode_symbol():
     g = [[Sym('rectangle'), [Sym('start'), -3.81, 1.016], [Sym('end'), 3.81, 0], stroke(), fill('outline')]]
     return simple_symbol('Electrode', 'E', 'Capacitive sensing electrode (PCB copper plate)',
-                         'lid:Electrode_15x15mm', g, [pin('1', 'SENSE', 0, -2.54, 90)], in_bom=False)
+                         'lid:Electrode_14x14mm', g, [pin('1', 'SENSE', 0, -2.54, 90)], in_bom=False)
 
 
 def loop_symbol():
@@ -123,16 +123,16 @@ FP_HEAD = '''(footprint "{name}"
 
 
 def electrode_fp():
-    """15x15 mm plate on the footprint's copper side, mask-covered, with a
+    """14x14 mm plate on the footprint's copper side, mask-covered, with a
     plated feed-through at the -Y edge so the tank can be connected from the
     other side of the board. Place flipped (bottom) on the board."""
-    s = FP_HEAD.format(name='Electrode_15x15mm', descr='Capacitive sensing electrode 15x15mm, solder-mask covered, with feed-through via pad',
+    s = FP_HEAD.format(name='Electrode_14x14mm', descr='Capacitive sensing electrode 14x14mm, solder-mask covered, with feed-through via pad',
                        tags='capacitive electrode sensor', rx=0, ry=0, vy=9)
     s += '\t(attr smd exclude_from_pos_files exclude_from_bom allow_soldermask_bridges)\n'
-    s += '\t(fp_rect (start -7.5 -7.5) (end 7.5 7.5) (stroke (width 0.1) (type default)) (fill no) (layer "F.Fab"))\n'
-    s += '\t(fp_rect (start -7.75 -7.75) (end 7.75 7.75) (stroke (width 0.05) (type default)) (fill no) (layer "F.CrtYd"))\n'
-    s += '\t(pad "1" smd rect (at 0 0) (size 15 15) (layers "F.Cu") (zone_connect 0))\n'
-    s += '\t(pad "1" thru_hole circle (at 0 -6.6) (size 0.7 0.7) (drill 0.35) (layers "*.Cu") (remove_unused_layers no) (zone_connect 0))\n'
+    s += '\t(fp_rect (start -7 -7) (end 7 7) (stroke (width 0.1) (type default)) (fill no) (layer "F.Fab"))\n'
+    s += '\t(fp_rect (start -7.25 -7.25) (end 7.25 7.25) (stroke (width 0.05) (type default)) (fill no) (layer "F.CrtYd"))\n'
+    s += '\t(pad "1" smd rect (at 0 0) (size 14 14) (layers "F.Cu") (zone_connect 0))\n'
+    s += '\t(pad "1" thru_hole circle (at 6.1 6.1) (size 0.7 0.7) (drill 0.35) (layers "*.Cu") (remove_unused_layers no) (zone_connect 0))\n'
     s += ')\n'
     return s
 
@@ -157,7 +157,7 @@ def loop_fp():
 def write_footprints():
     d = os.path.join(LIB, 'lid.pretty')
     os.makedirs(d, exist_ok=True)
-    for name, body in (('Electrode_15x15mm', electrode_fp()), ('NearField_Loop_D8mm', loop_fp())):
+    for name, body in (('Electrode_14x14mm', electrode_fp()), ('NearField_Loop_D8mm', loop_fp())):
         with open(os.path.join(d, name + '.kicad_mod'), 'w') as f:
             f.write(body)
 

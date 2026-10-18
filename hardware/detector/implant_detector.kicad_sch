@@ -4696,7 +4696,7 @@
 					)
 				)
 			)
-			(property "Footprint" "lid:Electrode_15x15mm"
+			(property "Footprint" "lid:Electrode_14x14mm"
 				(at 0 0 0)
 				(effects
 					(font
@@ -13142,7 +13142,7 @@
 		)
 		(uuid "0ea491c3-d508-50ba-857d-392bf9171fbe")
 	)
-	(label "SNS2"
+	(label "SNS5"
 		(at 314.96 58.42 180)
 		(effects
 			(font
@@ -13150,7 +13150,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ab9fe67f-1be8-51e2-aba3-64a26d97ad66")
+		(uuid "78c165d9-4b95-5f73-a820-ab309397c3c6")
 	)
 	(wire
 		(pts
@@ -13163,7 +13163,7 @@
 		)
 		(uuid "c594f87b-3613-53fd-a4f7-d69298eb5e0e")
 	)
-	(label "SNS2B"
+	(label "SNS5B"
 		(at 314.96 60.96 180)
 		(effects
 			(font
@@ -13171,7 +13171,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "60934b10-d4a4-5ec3-99c3-cdc00539129a")
+		(uuid "8abf2112-53dd-562c-9a5b-c4411dd3bc4e")
 	)
 	(wire
 		(pts
@@ -13184,7 +13184,7 @@
 		)
 		(uuid "65ec3b89-7e4b-5f6e-8554-748e55d3d410")
 	)
-	(label "SNS5"
+	(label "SNS6"
 		(at 314.96 66.04 180)
 		(effects
 			(font
@@ -13192,7 +13192,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "bce16c00-2952-5b50-96fd-3b19702f5845")
+		(uuid "28a049bc-d87d-5ac2-9545-98b5c0f985a6")
 	)
 	(wire
 		(pts
@@ -13205,7 +13205,7 @@
 		)
 		(uuid "bc506e9c-cc01-5e1f-9bc3-eeefee76ec48")
 	)
-	(label "SNS5B"
+	(label "SNS6B"
 		(at 314.96 68.58 180)
 		(effects
 			(font
@@ -13213,7 +13213,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "d4aa1094-066b-5678-b5bd-ebfae11b9be8")
+		(uuid "f1bcf576-342b-57f7-a798-9ec6a5edafc3")
 	)
 	(wire
 		(pts
@@ -13226,7 +13226,7 @@
 		)
 		(uuid "5a6ad3e9-f8bf-5c91-b677-4a6889ab15dd")
 	)
-	(label "SNS6"
+	(label "SNS2"
 		(at 314.96 73.66 180)
 		(effects
 			(font
@@ -13234,7 +13234,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "1653dd4b-1dec-59e3-99eb-436b97b7da21")
+		(uuid "dbc651fa-713e-5658-ae16-f4050538c4ee")
 	)
 	(wire
 		(pts
@@ -13247,7 +13247,7 @@
 		)
 		(uuid "e4a910b9-1fbb-55b7-b0e9-00f36a88be7e")
 	)
-	(label "SNS6B"
+	(label "SNS2B"
 		(at 314.96 76.2 180)
 		(effects
 			(font
@@ -13255,7 +13255,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "7531860b-8d34-5213-b947-e75a9c8e8763")
+		(uuid "b16f1455-b48a-5bf2-82c6-12ff9ce58168")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -13992,7 +13992,7 @@
 				)
 			)
 		)
-		(property "Footprint" "lid:Electrode_15x15mm"
+		(property "Footprint" "lid:Electrode_14x14mm"
 			(at 238.76 38.1 90)
 			(effects
 				(font
@@ -14060,8 +14060,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "a109d6cd-a12f-5dad-96e8-f97c585fa161")
-		(property "Reference" "L2"
+		(uuid "dad92cd5-929c-5e0b-8b26-089a2365cb65")
+		(property "Reference" "L5"
 			(at 264.16 52.07 90)
 			(effects
 				(font
@@ -14123,15 +14123,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "ac5ef01a-9e06-54a2-bd7a-bf868f82f46c")
+			(uuid "55852b28-67d0-5c7a-b27d-94c586ca7683")
 		)
 		(pin "2"
-			(uuid "f68171a1-93ce-5876-a49a-68a4027d9a39")
+			(uuid "d4fb02c8-75c5-57c6-9c13-270835abe249")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "L2")
+					(reference "L5")
 					(unit 1)
 				)
 			)
@@ -14148,7 +14148,7 @@
 		)
 		(uuid "7f728da0-c711-566e-acde-3ae70b5bf2c4")
 	)
-	(label "SNS2"
+	(label "SNS5"
 		(at 252.73 53.34 180)
 		(effects
 			(font
@@ -14156,7 +14156,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "5c1233a4-193f-5b39-85e7-50456463f7d4")
+		(uuid "b61e251e-ce3a-5ece-8aa5-fe49edf41943")
 	)
 	(wire
 		(pts
@@ -14169,7 +14169,7 @@
 		)
 		(uuid "b8895554-4f73-5b05-a9fd-fa64e85ea10c")
 	)
-	(label "SNS2B"
+	(label "SNS5B"
 		(at 265.43 53.34 0)
 		(effects
 			(font
@@ -14177,7 +14177,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "c790a73e-17e6-5f29-b879-25fbb5be435d")
+		(uuid "d867ccbd-b1e1-5550-8534-6d3e9102f012")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -14187,8 +14187,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "c7e89506-9a70-57df-a7a3-6ff184dbb7f2")
-		(property "Reference" "C2"
+		(uuid "e8ebdceb-1b66-564f-9cc5-f3005ac43686")
+		(property "Reference" "C5"
 			(at 289.56 50.038 90)
 			(effects
 				(font
@@ -14268,15 +14268,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "b69dc1e5-488c-57bf-8a1b-6084c3065646")
+			(uuid "2b889aa4-7ede-5bdf-bba2-7f26b157a409")
 		)
 		(pin "2"
-			(uuid "1efd8c94-6a24-5892-969f-ac3f2940a6d7")
+			(uuid "935feae9-ba5e-551f-b91c-ad0b60857525")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "C2")
+					(reference "C5")
 					(unit 1)
 				)
 			)
@@ -14293,7 +14293,7 @@
 		)
 		(uuid "7dd5f583-1f10-53fb-9778-700d1139efe2")
 	)
-	(label "SNS2"
+	(label "SNS5"
 		(at 278.13 53.34 180)
 		(effects
 			(font
@@ -14301,7 +14301,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8c6b95e8-01c4-58e3-870c-22919bdaa71d")
+		(uuid "6f9469a1-33da-5046-8a19-96ffa17182dc")
 	)
 	(wire
 		(pts
@@ -14314,7 +14314,7 @@
 		)
 		(uuid "e266de82-b099-5a5f-bb59-b895c3f90cfa")
 	)
-	(label "SNS2B"
+	(label "SNS5B"
 		(at 290.83 53.34 0)
 		(effects
 			(font
@@ -14322,7 +14322,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "60ba0c14-94e5-5412-9998-7c85763155ae")
+		(uuid "34612783-e776-5963-848c-758cde47928c")
 	)
 	(symbol
 		(lib_id "lid:Electrode")
@@ -14332,8 +14332,8 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "3187669e-4389-5e14-9505-ebb9f5274c65")
-		(property "Reference" "E2"
+		(uuid "ba9a7c01-9f87-5daa-9c70-a0b45db4a096")
+		(property "Reference" "E5"
 			(at 238.76 47.63 90)
 			(effects
 				(font
@@ -14349,7 +14349,7 @@
 				)
 			)
 		)
-		(property "Footprint" "lid:Electrode_15x15mm"
+		(property "Footprint" "lid:Electrode_14x14mm"
 			(at 238.76 53.34 90)
 			(effects
 				(font
@@ -14377,12 +14377,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "02904cf8-3c3d-5971-bd15-28bc249eec44")
+			(uuid "1d3a2ed7-05ed-5970-a79d-9a5677b126fa")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "E2")
+					(reference "E5")
 					(unit 1)
 				)
 			)
@@ -14399,7 +14399,7 @@
 		)
 		(uuid "b59f8f5c-124d-5507-95c5-6121624cdd31")
 	)
-	(label "SNS2"
+	(label "SNS5"
 		(at 233.68 53.34 180)
 		(effects
 			(font
@@ -14407,7 +14407,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "54832c32-a935-5e5a-81df-ed69089df988")
+		(uuid "1966c924-ccbe-53be-a9c0-27dcc4138298")
 	)
 	(symbol
 		(lib_id "Device:L")
@@ -14417,8 +14417,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "dad92cd5-929c-5e0b-8b26-089a2365cb65")
-		(property "Reference" "L5"
+		(uuid "63b40eda-40c6-5189-b4a8-1c88fe9f8c62")
+		(property "Reference" "L6"
 			(at 264.16 64.77 90)
 			(effects
 				(font
@@ -14480,15 +14480,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "55852b28-67d0-5c7a-b27d-94c586ca7683")
+			(uuid "c1406841-2b9a-5b8d-b8b7-ee47819d0c2b")
 		)
 		(pin "2"
-			(uuid "d4fb02c8-75c5-57c6-9c13-270835abe249")
+			(uuid "4ddedd3f-f8c3-5c1e-82c5-9d273298c02e")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "L5")
+					(reference "L6")
 					(unit 1)
 				)
 			)
@@ -14505,7 +14505,7 @@
 		)
 		(uuid "0d457177-d387-5ad3-aa0d-a30e4b332c35")
 	)
-	(label "SNS5"
+	(label "SNS6"
 		(at 252.73 66.04 180)
 		(effects
 			(font
@@ -14513,7 +14513,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "c16d937b-d7cc-59cb-9b97-4f331e25b0de")
+		(uuid "01bd1cd3-7f2d-5235-94d5-2cdb6e7f54d1")
 	)
 	(wire
 		(pts
@@ -14526,7 +14526,7 @@
 		)
 		(uuid "d1e83b3b-afd8-53c5-b697-1ce33af4307c")
 	)
-	(label "SNS5B"
+	(label "SNS6B"
 		(at 265.43 66.04 0)
 		(effects
 			(font
@@ -14534,7 +14534,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "56393cc8-93ad-51f3-81e5-549af1aaa016")
+		(uuid "0ef313d7-53ef-52f3-aacb-18712a992a05")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -14544,8 +14544,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "e8ebdceb-1b66-564f-9cc5-f3005ac43686")
-		(property "Reference" "C5"
+		(uuid "de5a9aad-e707-5359-8d4c-498ac503316f")
+		(property "Reference" "C6"
 			(at 289.56 62.738 90)
 			(effects
 				(font
@@ -14625,15 +14625,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "2b889aa4-7ede-5bdf-bba2-7f26b157a409")
+			(uuid "fb7a6ca6-9581-5a7f-a0d1-f0d03ceccb23")
 		)
 		(pin "2"
-			(uuid "935feae9-ba5e-551f-b91c-ad0b60857525")
+			(uuid "7e90b3b7-f922-5502-970e-9e65a0a00758")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "C5")
+					(reference "C6")
 					(unit 1)
 				)
 			)
@@ -14650,7 +14650,7 @@
 		)
 		(uuid "a0d960b3-f42a-517c-9be2-0c9d1cc1241b")
 	)
-	(label "SNS5"
+	(label "SNS6"
 		(at 278.13 66.04 180)
 		(effects
 			(font
@@ -14658,7 +14658,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "15a80d13-e601-501c-b56d-cdc83b3b5142")
+		(uuid "ccdf482b-ff8b-5ecd-b4a8-a853c2cc8a75")
 	)
 	(wire
 		(pts
@@ -14671,7 +14671,7 @@
 		)
 		(uuid "901b0ff3-f47a-5e61-a9c1-bd07d8d34a73")
 	)
-	(label "SNS5B"
+	(label "SNS6B"
 		(at 290.83 66.04 0)
 		(effects
 			(font
@@ -14679,7 +14679,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "09033759-2120-58fc-824a-c86210429a17")
+		(uuid "bfc77d0e-a3da-5ed6-aa74-eed44f3c2f4a")
 	)
 	(symbol
 		(lib_id "lid:Electrode")
@@ -14689,8 +14689,8 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "ba9a7c01-9f87-5daa-9c70-a0b45db4a096")
-		(property "Reference" "E5"
+		(uuid "c796369e-68cd-5c2e-9d92-64a4ddfc0b03")
+		(property "Reference" "E6"
 			(at 238.76 60.33 90)
 			(effects
 				(font
@@ -14706,7 +14706,7 @@
 				)
 			)
 		)
-		(property "Footprint" "lid:Electrode_15x15mm"
+		(property "Footprint" "lid:Electrode_14x14mm"
 			(at 238.76 66.04 90)
 			(effects
 				(font
@@ -14734,12 +14734,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "1d3a2ed7-05ed-5970-a79d-9a5677b126fa")
+			(uuid "2d48a23b-2841-5bbf-980e-496ec2cb643a")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "E5")
+					(reference "E6")
 					(unit 1)
 				)
 			)
@@ -14756,7 +14756,7 @@
 		)
 		(uuid "54ff5ff4-0b7b-56e7-83b7-628896df12a6")
 	)
-	(label "SNS5"
+	(label "SNS6"
 		(at 233.68 66.04 180)
 		(effects
 			(font
@@ -14764,7 +14764,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ad8bb55d-ddc8-5bba-8a8b-f2a54da082bb")
+		(uuid "a6d04ae5-92b1-56c3-97d2-cd6ca97b5535")
 	)
 	(symbol
 		(lib_id "Device:L")
@@ -14774,8 +14774,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "63b40eda-40c6-5189-b4a8-1c88fe9f8c62")
-		(property "Reference" "L6"
+		(uuid "a109d6cd-a12f-5dad-96e8-f97c585fa161")
+		(property "Reference" "L2"
 			(at 264.16 80.01 90)
 			(effects
 				(font
@@ -14837,15 +14837,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "c1406841-2b9a-5b8d-b8b7-ee47819d0c2b")
+			(uuid "ac5ef01a-9e06-54a2-bd7a-bf868f82f46c")
 		)
 		(pin "2"
-			(uuid "4ddedd3f-f8c3-5c1e-82c5-9d273298c02e")
+			(uuid "f68171a1-93ce-5876-a49a-68a4027d9a39")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "L6")
+					(reference "L2")
 					(unit 1)
 				)
 			)
@@ -14862,7 +14862,7 @@
 		)
 		(uuid "157ac632-e13c-54ad-9580-ed897865d2d4")
 	)
-	(label "SNS6"
+	(label "SNS2"
 		(at 252.73 81.28 180)
 		(effects
 			(font
@@ -14870,7 +14870,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "2f39acd0-1a4f-55a3-b731-9469d3403b58")
+		(uuid "b132f314-51c5-53d7-958f-ff959c892aff")
 	)
 	(wire
 		(pts
@@ -14883,7 +14883,7 @@
 		)
 		(uuid "57916e06-c1ee-5479-8ec5-23f7f760bb76")
 	)
-	(label "SNS6B"
+	(label "SNS2B"
 		(at 265.43 81.28 0)
 		(effects
 			(font
@@ -14891,7 +14891,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "5541e8d9-6d84-5c6a-afc3-ee4fc8c6fcd2")
+		(uuid "bd4acab8-c534-57e5-8e71-8765938f8b8f")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -14901,8 +14901,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "de5a9aad-e707-5359-8d4c-498ac503316f")
-		(property "Reference" "C6"
+		(uuid "c7e89506-9a70-57df-a7a3-6ff184dbb7f2")
+		(property "Reference" "C2"
 			(at 289.56 77.978 90)
 			(effects
 				(font
@@ -14982,15 +14982,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "fb7a6ca6-9581-5a7f-a0d1-f0d03ceccb23")
+			(uuid "b69dc1e5-488c-57bf-8a1b-6084c3065646")
 		)
 		(pin "2"
-			(uuid "7e90b3b7-f922-5502-970e-9e65a0a00758")
+			(uuid "1efd8c94-6a24-5892-969f-ac3f2940a6d7")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "C6")
+					(reference "C2")
 					(unit 1)
 				)
 			)
@@ -15007,7 +15007,7 @@
 		)
 		(uuid "fcecc4c5-2f50-52cd-ac48-62d4553229fd")
 	)
-	(label "SNS6"
+	(label "SNS2"
 		(at 278.13 81.28 180)
 		(effects
 			(font
@@ -15015,7 +15015,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "818ad4c4-9699-514f-996d-bfb1e1110820")
+		(uuid "6d034958-95c9-5961-a147-84a2a228b5b2")
 	)
 	(wire
 		(pts
@@ -15028,7 +15028,7 @@
 		)
 		(uuid "861c0c3a-74bd-54b6-9370-75351224eebe")
 	)
-	(label "SNS6B"
+	(label "SNS2B"
 		(at 290.83 81.28 0)
 		(effects
 			(font
@@ -15036,7 +15036,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "fc644890-35ea-5e78-adf4-0b48cd85d125")
+		(uuid "3c4774ee-7b04-5f98-a520-f1563337f055")
 	)
 	(symbol
 		(lib_id "lid:Electrode")
@@ -15046,8 +15046,8 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "c796369e-68cd-5c2e-9d92-64a4ddfc0b03")
-		(property "Reference" "E6"
+		(uuid "3187669e-4389-5e14-9505-ebb9f5274c65")
+		(property "Reference" "E2"
 			(at 238.76 75.57 90)
 			(effects
 				(font
@@ -15063,7 +15063,7 @@
 				)
 			)
 		)
-		(property "Footprint" "lid:Electrode_15x15mm"
+		(property "Footprint" "lid:Electrode_14x14mm"
 			(at 238.76 81.28 90)
 			(effects
 				(font
@@ -15091,12 +15091,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "2d48a23b-2841-5bbf-980e-496ec2cb643a")
+			(uuid "02904cf8-3c3d-5971-bd15-28bc249eec44")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "E6")
+					(reference "E2")
 					(unit 1)
 				)
 			)
@@ -15113,7 +15113,7 @@
 		)
 		(uuid "713ac158-8302-5e6a-bc2f-35f5d66e289c")
 	)
-	(label "SNS6"
+	(label "SNS2"
 		(at 233.68 81.28 180)
 		(effects
 			(font
@@ -15121,7 +15121,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "980b359e-2607-5dc3-821b-4842aadcff18")
+		(uuid "dd95689e-7f06-56bb-97e0-8e021402bb0d")
 	)
 	(symbol
 		(lib_id "lid:FDC2214")
@@ -15648,7 +15648,7 @@
 		)
 		(uuid "cadc128a-80a8-5ce4-8a4f-682e465570c1")
 	)
-	(label "SNS4"
+	(label "SNS7"
 		(at 314.96 142.24 180)
 		(effects
 			(font
@@ -15656,7 +15656,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "739f266f-63d1-51e3-a86c-98a582f90aa9")
+		(uuid "b14a26d9-932d-5a34-b353-4691347302ba")
 	)
 	(wire
 		(pts
@@ -15669,7 +15669,7 @@
 		)
 		(uuid "a23415a0-7a49-5c4c-b7e5-dd69d7f03345")
 	)
-	(label "SNS4B"
+	(label "SNS7B"
 		(at 314.96 144.78 180)
 		(effects
 			(font
@@ -15677,7 +15677,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "5188d319-94c2-5d4c-94b7-2eeb23df3c49")
+		(uuid "dae3ab78-b9ba-513b-964a-68baa60200f5")
 	)
 	(wire
 		(pts
@@ -15690,7 +15690,7 @@
 		)
 		(uuid "891a20a5-2d31-5c92-9c2d-8dcf376ba645")
 	)
-	(label "SNS7"
+	(label "SNS8"
 		(at 314.96 149.86 180)
 		(effects
 			(font
@@ -15698,7 +15698,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "f7585d8b-9e0c-502e-be74-c3184b9f06c9")
+		(uuid "72802efd-4878-5f22-ba2c-5d552d06ea6b")
 	)
 	(wire
 		(pts
@@ -15711,7 +15711,7 @@
 		)
 		(uuid "4aaf461e-918b-5599-8bc9-58a14f2cd2b4")
 	)
-	(label "SNS7B"
+	(label "SNS8B"
 		(at 314.96 152.4 180)
 		(effects
 			(font
@@ -15719,7 +15719,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "042d457b-7468-5033-9968-ef56848401f3")
+		(uuid "da5da302-943f-5be0-8bb0-a2665c357b5a")
 	)
 	(wire
 		(pts
@@ -15732,7 +15732,7 @@
 		)
 		(uuid "d05dac91-7dee-547b-b11a-878e5cda1c00")
 	)
-	(label "SNS8"
+	(label "SNS4"
 		(at 314.96 157.48 180)
 		(effects
 			(font
@@ -15740,7 +15740,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b87b1cf5-7726-59eb-9987-a6a2f4c0f8ef")
+		(uuid "acb6359c-c359-52cc-9d7c-51541c46825b")
 	)
 	(wire
 		(pts
@@ -15753,7 +15753,7 @@
 		)
 		(uuid "a07f8921-123a-535a-95a3-6d2d8a62f0a9")
 	)
-	(label "SNS8B"
+	(label "SNS4B"
 		(at 314.96 160.02 180)
 		(effects
 			(font
@@ -15761,7 +15761,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "5932e49b-8dfa-5bf3-a8d4-c796d99b8461")
+		(uuid "fd2e56e5-7f83-572d-9f09-3cd80620c8bd")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -16498,7 +16498,7 @@
 				)
 			)
 		)
-		(property "Footprint" "lid:Electrode_15x15mm"
+		(property "Footprint" "lid:Electrode_14x14mm"
 			(at 238.76 124.46 90)
 			(effects
 				(font
@@ -16566,8 +16566,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "48408937-af6d-56cc-83f8-f0fdcc94fb34")
-		(property "Reference" "L4"
+		(uuid "1c267435-f201-5ffa-8dfa-27ed7e7cf09e")
+		(property "Reference" "L7"
 			(at 264.16 135.89 90)
 			(effects
 				(font
@@ -16629,15 +16629,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "956465f1-df5e-52f1-a43a-3aff1a4a94de")
+			(uuid "5e6ab86a-c939-528a-9698-cbd9d1f9fd06")
 		)
 		(pin "2"
-			(uuid "e6d51c45-5892-5ef6-9e85-9dd9e1983551")
+			(uuid "f3cd3897-b05d-5d3d-aee4-bc178f1d5f35")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "L4")
+					(reference "L7")
 					(unit 1)
 				)
 			)
@@ -16654,7 +16654,7 @@
 		)
 		(uuid "4025fc02-d52e-5ce6-8b1b-08102ad75ece")
 	)
-	(label "SNS4"
+	(label "SNS7"
 		(at 252.73 137.16 180)
 		(effects
 			(font
@@ -16662,7 +16662,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "545bc089-1245-507a-b780-516d2a4a8280")
+		(uuid "8ee9f9ee-b0b4-5111-a143-2a2e74d1c31c")
 	)
 	(wire
 		(pts
@@ -16675,7 +16675,7 @@
 		)
 		(uuid "dfaf93ed-a030-5fd1-97fa-4837c62baff0")
 	)
-	(label "SNS4B"
+	(label "SNS7B"
 		(at 265.43 137.16 0)
 		(effects
 			(font
@@ -16683,7 +16683,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "01ba9e42-5a6c-544c-ade9-c30b3f6588d8")
+		(uuid "b5fc6018-b804-51ec-95a1-bdcb1c7a94a4")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -16693,8 +16693,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "88a5a603-9fba-57e8-9224-4b0b813f5a6d")
-		(property "Reference" "C4"
+		(uuid "33dba1b6-c7ac-55d6-a855-d22883fde736")
+		(property "Reference" "C7"
 			(at 289.56 133.858 90)
 			(effects
 				(font
@@ -16774,15 +16774,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "243a1221-1a68-56c6-a4b8-10eee7dadbd2")
+			(uuid "735d2ad9-f28d-5fb2-a112-dff566c8a839")
 		)
 		(pin "2"
-			(uuid "1d9d7267-df00-5ba3-87a5-ba3287321701")
+			(uuid "ef2f778e-7ff3-5ab5-93a8-fb6700ec4909")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "C4")
+					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -16799,7 +16799,7 @@
 		)
 		(uuid "3ebb55b0-993e-55a1-a061-84b1220b4e6f")
 	)
-	(label "SNS4"
+	(label "SNS7"
 		(at 278.13 137.16 180)
 		(effects
 			(font
@@ -16807,7 +16807,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "3f739572-fd4e-5c95-a7eb-da9327a799c9")
+		(uuid "7bf5ab37-d985-5dbe-a3e5-69195e5ca3c7")
 	)
 	(wire
 		(pts
@@ -16820,7 +16820,7 @@
 		)
 		(uuid "9a9aa2d4-e5e5-5856-9644-4fcd21cde9f9")
 	)
-	(label "SNS4B"
+	(label "SNS7B"
 		(at 290.83 137.16 0)
 		(effects
 			(font
@@ -16828,7 +16828,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "14749e02-6bc7-55d3-8a46-737f0a3e4c54")
+		(uuid "da1c3a29-a132-5ff9-8549-d2e74e337113")
 	)
 	(symbol
 		(lib_id "lid:Electrode")
@@ -16838,8 +16838,8 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "9a001aa7-69f5-5440-bb53-6b664cde921b")
-		(property "Reference" "E4"
+		(uuid "5d1dc84e-1447-5404-b1d2-0ec6d8b8c062")
+		(property "Reference" "E7"
 			(at 238.76 131.45 90)
 			(effects
 				(font
@@ -16855,7 +16855,7 @@
 				)
 			)
 		)
-		(property "Footprint" "lid:Electrode_15x15mm"
+		(property "Footprint" "lid:Electrode_14x14mm"
 			(at 238.76 137.16 90)
 			(effects
 				(font
@@ -16883,12 +16883,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "9d4cbb8b-ac16-5475-adf8-9c8b5f1b42e0")
+			(uuid "e67feddc-08bc-55a0-847b-91e96e3aee6d")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "E4")
+					(reference "E7")
 					(unit 1)
 				)
 			)
@@ -16905,7 +16905,7 @@
 		)
 		(uuid "e90cac69-9bdd-5f98-9e36-6be83cd1d917")
 	)
-	(label "SNS4"
+	(label "SNS7"
 		(at 233.68 137.16 180)
 		(effects
 			(font
@@ -16913,7 +16913,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "456db1b2-8c62-5b6b-a4aa-eb119e2ede11")
+		(uuid "951dfe28-bb83-502d-a7ee-6231136c14dc")
 	)
 	(symbol
 		(lib_id "Device:L")
@@ -16923,8 +16923,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "1c267435-f201-5ffa-8dfa-27ed7e7cf09e")
-		(property "Reference" "L7"
+		(uuid "b8119ef0-731b-59a1-acf0-aa916fc048fe")
+		(property "Reference" "L8"
 			(at 264.16 151.13 90)
 			(effects
 				(font
@@ -16986,15 +16986,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "5e6ab86a-c939-528a-9698-cbd9d1f9fd06")
+			(uuid "8df16af7-b523-5979-90d9-bc3497d136ef")
 		)
 		(pin "2"
-			(uuid "f3cd3897-b05d-5d3d-aee4-bc178f1d5f35")
+			(uuid "0a53fb82-088e-5427-93f6-f48c1e8c581d")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "L7")
+					(reference "L8")
 					(unit 1)
 				)
 			)
@@ -17011,7 +17011,7 @@
 		)
 		(uuid "9bad0206-d0b9-5d5b-b44d-b5245ff9e04e")
 	)
-	(label "SNS7"
+	(label "SNS8"
 		(at 252.73 152.4 180)
 		(effects
 			(font
@@ -17019,7 +17019,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "74abdf1f-ae8e-5429-8a55-d8035861eb54")
+		(uuid "236bc97d-da61-50a6-bab9-e434dac5a2bb")
 	)
 	(wire
 		(pts
@@ -17032,7 +17032,7 @@
 		)
 		(uuid "8003461f-3892-53de-b208-2280091796f6")
 	)
-	(label "SNS7B"
+	(label "SNS8B"
 		(at 265.43 152.4 0)
 		(effects
 			(font
@@ -17040,7 +17040,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "cb138c3e-1dd8-5cab-ba23-b5d2d374c95a")
+		(uuid "2f24fea2-d39e-54b3-86ac-0fe01dd39931")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -17050,8 +17050,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "33dba1b6-c7ac-55d6-a855-d22883fde736")
-		(property "Reference" "C7"
+		(uuid "aab57fa7-f5cd-5821-83ee-0a385678451a")
+		(property "Reference" "C8"
 			(at 289.56 149.098 90)
 			(effects
 				(font
@@ -17131,15 +17131,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "735d2ad9-f28d-5fb2-a112-dff566c8a839")
+			(uuid "24ace874-6cf4-52c6-9475-90dc006a5234")
 		)
 		(pin "2"
-			(uuid "ef2f778e-7ff3-5ab5-93a8-fb6700ec4909")
+			(uuid "749477de-6306-51ff-aa26-04bdf5a9c6de")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "C7")
+					(reference "C8")
 					(unit 1)
 				)
 			)
@@ -17156,7 +17156,7 @@
 		)
 		(uuid "c97c1a4b-629f-53be-bffb-e5aecaded61a")
 	)
-	(label "SNS7"
+	(label "SNS8"
 		(at 278.13 152.4 180)
 		(effects
 			(font
@@ -17164,7 +17164,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "10298790-e4ed-59ee-837f-0473e6004e30")
+		(uuid "ca712d78-d865-5204-8012-5d6331f5653d")
 	)
 	(wire
 		(pts
@@ -17177,7 +17177,7 @@
 		)
 		(uuid "c1b2769a-9fb6-53a2-82cd-5cc62d810425")
 	)
-	(label "SNS7B"
+	(label "SNS8B"
 		(at 290.83 152.4 0)
 		(effects
 			(font
@@ -17185,7 +17185,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "88ee5bf9-c552-5ef9-9813-7526818b9b63")
+		(uuid "de53b04c-3f3a-53b3-9110-5b8c8c37d565")
 	)
 	(symbol
 		(lib_id "lid:Electrode")
@@ -17195,8 +17195,8 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "5d1dc84e-1447-5404-b1d2-0ec6d8b8c062")
-		(property "Reference" "E7"
+		(uuid "b70e6171-b9f0-5b79-bcd7-9ea5cd9bf893")
+		(property "Reference" "E8"
 			(at 238.76 146.69 90)
 			(effects
 				(font
@@ -17212,7 +17212,7 @@
 				)
 			)
 		)
-		(property "Footprint" "lid:Electrode_15x15mm"
+		(property "Footprint" "lid:Electrode_14x14mm"
 			(at 238.76 152.4 90)
 			(effects
 				(font
@@ -17240,12 +17240,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "e67feddc-08bc-55a0-847b-91e96e3aee6d")
+			(uuid "67654f66-dafe-546b-b4ae-045cc79598bf")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "E7")
+					(reference "E8")
 					(unit 1)
 				)
 			)
@@ -17262,7 +17262,7 @@
 		)
 		(uuid "49709a1f-b8c4-5f3a-8bec-a495979eb7f2")
 	)
-	(label "SNS7"
+	(label "SNS8"
 		(at 233.68 152.4 180)
 		(effects
 			(font
@@ -17270,7 +17270,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "6795d693-9046-59d2-8541-93448715a3e5")
+		(uuid "6762adf7-5c1f-5691-bbcf-d92e5fe46ee9")
 	)
 	(symbol
 		(lib_id "Device:L")
@@ -17280,8 +17280,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "b8119ef0-731b-59a1-acf0-aa916fc048fe")
-		(property "Reference" "L8"
+		(uuid "48408937-af6d-56cc-83f8-f0fdcc94fb34")
+		(property "Reference" "L4"
 			(at 264.16 163.83 90)
 			(effects
 				(font
@@ -17343,15 +17343,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "8df16af7-b523-5979-90d9-bc3497d136ef")
+			(uuid "956465f1-df5e-52f1-a43a-3aff1a4a94de")
 		)
 		(pin "2"
-			(uuid "0a53fb82-088e-5427-93f6-f48c1e8c581d")
+			(uuid "e6d51c45-5892-5ef6-9e85-9dd9e1983551")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "L8")
+					(reference "L4")
 					(unit 1)
 				)
 			)
@@ -17368,7 +17368,7 @@
 		)
 		(uuid "3898cca7-79cd-54eb-b2db-762f96a1acaf")
 	)
-	(label "SNS8"
+	(label "SNS4"
 		(at 252.73 165.1 180)
 		(effects
 			(font
@@ -17376,7 +17376,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "0a67e08c-fccb-552f-be3a-5d806c193323")
+		(uuid "98f8d27c-5099-5492-b5d8-0b1bbd3cbbcd")
 	)
 	(wire
 		(pts
@@ -17389,7 +17389,7 @@
 		)
 		(uuid "24865a83-e3f0-55ca-9dea-4516d5f7021c")
 	)
-	(label "SNS8B"
+	(label "SNS4B"
 		(at 265.43 165.1 0)
 		(effects
 			(font
@@ -17397,7 +17397,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "904cb498-75d1-571d-b206-5d129640e1ba")
+		(uuid "81aed425-2a12-5c86-8248-a2dfc2979b87")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -17407,8 +17407,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "aab57fa7-f5cd-5821-83ee-0a385678451a")
-		(property "Reference" "C8"
+		(uuid "88a5a603-9fba-57e8-9224-4b0b813f5a6d")
+		(property "Reference" "C4"
 			(at 289.56 161.798 90)
 			(effects
 				(font
@@ -17488,15 +17488,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "24ace874-6cf4-52c6-9475-90dc006a5234")
+			(uuid "243a1221-1a68-56c6-a4b8-10eee7dadbd2")
 		)
 		(pin "2"
-			(uuid "749477de-6306-51ff-aa26-04bdf5a9c6de")
+			(uuid "1d9d7267-df00-5ba3-87a5-ba3287321701")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "C8")
+					(reference "C4")
 					(unit 1)
 				)
 			)
@@ -17513,7 +17513,7 @@
 		)
 		(uuid "edb93fdd-e28a-57e6-bd66-d1dc25deb194")
 	)
-	(label "SNS8"
+	(label "SNS4"
 		(at 278.13 165.1 180)
 		(effects
 			(font
@@ -17521,7 +17521,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "f49968c3-4409-52c7-a4c0-893042698d79")
+		(uuid "32c5dc01-fb0b-5d0e-9e8b-4be0682ab817")
 	)
 	(wire
 		(pts
@@ -17534,7 +17534,7 @@
 		)
 		(uuid "37eff8a4-b056-5cc5-8ab2-2e341815a8f9")
 	)
-	(label "SNS8B"
+	(label "SNS4B"
 		(at 290.83 165.1 0)
 		(effects
 			(font
@@ -17542,7 +17542,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "df811554-b8f2-5a16-91a0-f7664573a202")
+		(uuid "88396484-9d94-53cd-895e-2a3328c1eeb1")
 	)
 	(symbol
 		(lib_id "lid:Electrode")
@@ -17552,8 +17552,8 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "b70e6171-b9f0-5b79-bcd7-9ea5cd9bf893")
-		(property "Reference" "E8"
+		(uuid "9a001aa7-69f5-5440-bb53-6b664cde921b")
+		(property "Reference" "E4"
 			(at 238.76 159.39 90)
 			(effects
 				(font
@@ -17569,7 +17569,7 @@
 				)
 			)
 		)
-		(property "Footprint" "lid:Electrode_15x15mm"
+		(property "Footprint" "lid:Electrode_14x14mm"
 			(at 238.76 165.1 90)
 			(effects
 				(font
@@ -17597,12 +17597,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "67654f66-dafe-546b-b4ae-045cc79598bf")
+			(uuid "9d4cbb8b-ac16-5475-adf8-9c8b5f1b42e0")
 		)
 		(instances
 			(project "implant_detector"
 				(path "/5d0b0f92-b61c-57e8-a487-81fd4e79e154"
-					(reference "E8")
+					(reference "E4")
 					(unit 1)
 				)
 			)
@@ -17619,7 +17619,7 @@
 		)
 		(uuid "adf1a59e-f026-52f8-875a-8b2aed5272f6")
 	)
-	(label "SNS8"
+	(label "SNS4"
 		(at 233.68 165.1 180)
 		(effects
 			(font
@@ -17627,7 +17627,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b9955724-a848-522c-9d15-da147a0fee56")
+		(uuid "4c2b5d90-032f-56eb-a6cb-90cb0be24c4e")
 	)
 	(text "Near-field H-loop at the tip, for an external VNA (NanoVNA etc.)"
 		(exclude_from_sim no)

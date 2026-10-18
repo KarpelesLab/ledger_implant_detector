@@ -434,7 +434,7 @@
 				)
 			)
 		)
-		(property "Footprint" "lid:Electrode_15x15mm"
+		(property "Footprint" "lid:Electrode_14x14mm"
 			(at 0 0 0)
 			(effects
 				(font
