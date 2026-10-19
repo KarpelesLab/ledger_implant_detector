@@ -1,0 +1,8 @@
+Item,Qty per kit,Used on,Designators,Description,Suggested part,Notes
+1,4,slot (2) + tem_base (2),J1 J2,"SMA female jack, edge mount / end launch, for 1.6 mm PCB, 50 ohm","Samtec SMA-J-P-H-ST-EM1 (footprint used); generic 'SMA-KE 1.6 mm' edge jacks also fit (e.g. Adafruit 1865)",Hand-soldered: centre pin + 2 legs top + 2 legs bottom
+2,4,carrier,H1-H4,"M3 nylon hex spacer, female-female, 5 / 10 / 15 / 20 mm (one set of 4 per height you want to test)",any,Nylon only near the test area
+3,4,tem_base + tem_plate,H1-H4,"M3 nylon hex spacer, female-female, 15 / 20 / 25 / 30 mm (one set of 4 per cell height h)",any,20 mm = 50 ohm cell
+4,8,slot + tem_base,H5-H8,"M3 nylon spacer >= 20 mm, used as feet",any,
+5,24,all,,M3 x 6 nylon screw,any,
+6,1,tem_plate + 2 x tem_ramp,,"Conductive copper foil tape, 5-10 mm wide (conductive adhesive)",any,Ramp-to-septum joints; tack-solder
+7,1,either fixture,,"SMA 50 ohm termination, male",any (the NanoVNA calibration load works),Only for S11-only tests
