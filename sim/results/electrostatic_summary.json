@@ -52,6 +52,32 @@
   "residual_hand-held": 1708.6580255353474
  },
  {
+  "shell": "1.0",
+  "battery": "26 mm (spiral)",
+  "antenna": "floating",
+  "dC": [
+   -2.0,
+   -307.0,
+   -956.0,
+   -2781.0
+  ],
+  "residual_jig": 2381.6477690465563,
+  "residual_hand-held": 1982.0239975164277
+ },
+ {
+  "shell": "1.0",
+  "battery": "26 mm (spiral)",
+  "antenna": "board tied to wallet",
+  "dC": [
+   5.0,
+   -286.0,
+   -913.0,
+   -2084.0
+  ],
+  "residual_jig": 1684.7086638881974,
+  "residual_hand-held": 1285.0848923580688
+ },
+ {
   "shell": "0.6",
   "battery": "batt_covers_all",
   "antenna": "floating",
@@ -102,5 +128,31 @@
   ],
   "residual_jig": 3329.560674746959,
   "residual_hand-held": 2569.578071923661
+ },
+ {
+  "shell": "0.6",
+  "battery": "26 mm (spiral)",
+  "antenna": "floating",
+  "dC": [
+   -2.0,
+   -521.0,
+   -1735.0,
+   -4890.0
+  ],
+  "residual_jig": 4129.867264802171,
+  "residual_hand-held": 3369.884661978873
+ },
+ {
+  "shell": "0.6",
+  "battery": "26 mm (spiral)",
+  "antenna": "board tied to wallet",
+  "dC": [
+   5.0,
+   -492.0,
+   -1672.0,
+   -4013.0
+  ],
+  "residual_jig": 3253.273502281143,
+  "residual_hand-held": 2493.2908994578447
  }
 ]

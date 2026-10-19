@@ -239,3 +239,17 @@ The modem is a 50 ohm resistor behind a 100 nH coil. The battery and board are
 perfect conductors. The real implant's ground connection is still unknown, and
 without the ground tie the 1.2 GHz notch would likely change or disappear.
 Treat the depths as an order of magnitude.
+
+## Second implant variant: a hand-wound spiral
+
+Joe Grand's tampered Nano X
+([slides](https://grandideastudio.com/media/ledger_hardware_implant_slides.pdf),
+pp. 33-38) uses a different antenna: ~8 cm of ~0.3 mm copper wire hand-wound
+into a ~6 mm pancake spiral of ~6 uneven, nearly touching turns. It lies half
+over the edge of the implant's own board and is fed directly by the modem.
+The Ledger's battery is replaced by a shorter one to make room. The
+capacitive array sees that shortened battery clearly (see
+[simulation.md](simulation.md), point 6).
+
+Results: *pending, the simulation batch is still running.*
+

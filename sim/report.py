@@ -35,23 +35,30 @@ def placement_residual(v, B, ga, sb):
 
 def geometry_figure():
     import electrostatic as es
-    fig, axs = plt.subplots(1, 2, figsize=(11, 3.4))
-    for ax, batt in zip(axs, es.BATTERIES):
+    fig, axs = plt.subplots(1, 3, figsize=(15, 3.4))
+    for ax, batt in zip(axs, list(es.BATTERIES) + ['grand']):
         for e, (x, y) in es.ELECTRODES.items():
             ax.add_patch(Rectangle((x, y), es.EL_SIZE, es.EL_SIZE, fc='#d9a441', ec='#8a6418', alpha=0.35))
             ax.text(x + 7, y + 7, 'E%d' % e, ha='center', va='center', color='#6b4c10')
         d = es.DEV
         ax.add_patch(Rectangle((d[0], d[2]), d[1] - d[0], d[3] - d[2], fc='none', ec='0.3', lw=1.2, ls='--'))
-        b = es.BATTERIES[batt]
+        b = es.G_BATTERY if batt == 'grand' else es.BATTERIES[batt]
         ax.add_patch(Rectangle((b[0], b[2]), b[1] - b[0], b[3] - b[2], fc='#9aa7b8', ec='#4a5a70', alpha=0.55))
-        for p in (es.ANT_PATCH, es.ANT_ARM):
-            ax.add_patch(Rectangle((p[0], p[2]), p[1] - p[0], p[3] - p[2], fc='none', ec='#c0392b', lw=1.6))
+        if batt == 'grand':
+            g = es.G_BOARD
+            ax.add_patch(Rectangle((g[0], g[2]), g[1] - g[0], g[3] - g[2], fc='#7fb77e', ec='#3d7a3c', alpha=0.6))
+            g = es.G_SPIRAL
+            ax.add_patch(Rectangle((g[0], g[2]), g[1] - g[0], g[3] - g[2], fc='none', ec='#c0392b', lw=1.6))
+        else:
+            for p in (es.ANT_PATCH, es.ANT_ARM):
+                ax.add_patch(Rectangle((p[0], p[2]), p[1] - p[0], p[3] - p[2], fc='none', ec='#c0392b', lw=1.6))
         ax.set_xlim(8, 92)
         ax.set_ylim(-2, 42)
         ax.set_aspect('equal')
         ax.invert_yaxis()
         ax.set_title({'batt_covers_all': 'battery covers the whole antenna',
-                      'batt_35x15': '35 x 15 battery, feed patch sticks out'}[batt])
+                      'batt_35x15': '35 x 15 battery, feed patch sticks out',
+                      'grand': 'spiral implant: 26 mm battery, board (green), coil'}[batt])
         ax.set_xlabel('mm (detector board coordinates)')
     axs[0].plot([], [], color='#c0392b', label='antenna (est. from photos)')
     axs[0].add_patch(Rectangle((0, 0), 0, 0, fc='#9aa7b8', label='battery pouch'))
@@ -87,6 +94,17 @@ def electrostatic():
                     res = placement_residual(vv, B, ga, sb)
                     row['residual_' + name] = float(np.abs(res).max())
                 rows.append(row)
+        r = R.get('t%s_grand' % t)
+        if r:
+            G = np.array([r['genuine'][e] for e in ELS])
+            series.append(('spiral implant, short battery', np.array([r['grand'][e] for e in ELS]) - G, '#7b3fa0'))
+            for k in ('grand', 'grand_tied'):
+                vv = np.array([r[k][e] for e in ELS]) - G
+                row = {'shell': t, 'battery': '26 mm (spiral)', 'antenna': 'floating' if k == 'grand' else
+                       'board tied to wallet', 'dC': vv[:4].round(0).tolist()}
+                for name, (ga, sb) in TOL.items():
+                    row['residual_' + name] = float(np.abs(placement_residual(vv, B, ga, sb)).max())
+                rows.append(row)
         ax = axs[0, col]
         w = 0.8 / len(series)
         for i, (lab, v, c) in enumerate(series):
@@ -95,9 +113,11 @@ def electrostatic():
         ax.set_title('%s mm shell: change vs. genuine reference' % t)
         ax.set_ylabel('dC (fF)')
         ax = axs[1, col]
-        for i, (lab, v, c) in enumerate(series[2:]):
+        tam = series[2:]
+        w = 0.8 / len(tam)
+        for i, (lab, v, c) in enumerate(tam):
             res = placement_residual(v, B, *TOL['hand-held'])
-            ax.bar(np.arange(4) + (i - 0.5) * 0.35, res[:4], 0.35, label=lab, color=c)
+            ax.bar(np.arange(4) + (i - (len(tam) - 1) / 2) * w, res[:4], w, label=lab, color=c)
         ax.axhline(0, color='k', lw=0.6)
         ax.set_title('left after removing the best hand-held placement error')
         ax.set_ylabel('residual (fF)')

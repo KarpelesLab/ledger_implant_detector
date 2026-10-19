@@ -21,7 +21,9 @@ metal here" would flag every genuine unit. The simulations compare
 ![modelled geometry](img/sim_geometry.png)
 
 Antenna and battery outlines are estimates (red / grey). Their relative
-position is the most important unknown; see the end of this document.
+position is the most important unknown; see the end of this document. The
+third panel is a second, different implant (a wire spiral and a shortened
+battery, see point 6 below).
 
 ## 1. Capacitive array (`sim/electrostatic.py`)
 
@@ -58,6 +60,10 @@ remainder is the part a placement error cannot explain.
 | 1.0 mm | feed patch outside the battery | tied to a large ground (upper bound) | 2108 fF | 1709 fF |
 | 0.6 mm | battery covers the whole antenna | floating | 47 fF | 47 fF |
 | 0.6 mm | feed patch outside the battery | floating | 921 fF | 767 fF |
+| 1.0 mm | spiral implant, 26 mm battery (see below) | floating | **2382 fF** | **1982 fF** |
+| 1.0 mm | spiral implant, 26 mm battery | board tied to the wallet's board | 1685 fF | 1285 fF |
+| 0.6 mm | spiral implant, 26 mm battery | floating | 4130 fF | 3370 fF |
+| 0.6 mm | spiral implant, 26 mm battery | board tied to the wallet's board | 3253 fF | 2493 fF |
 
 (Electrode capacitance is ~10 pF. The FDC2214 noise floor is 0.3 fF at
 100 S/s, so the instrument is never the limit: placement and unit-to-unit
@@ -91,6 +97,20 @@ variation are.)
    ground is ideal.
 5. A thinner back (Flex / Stax, 0.6 mm) roughly doubles every effect, both
    signal and placement sensitivity.
+
+6. **A second, quite different implant is caught by its shortened battery.**
+   Joe Grand's tampered Nano X ([slides](https://grandideastudio.com/media/ledger_hardware_implant_slides.pdf),
+   pp. 33-38) replaces the 44 mm battery with a 26 mm one and puts the implant
+   board and a hand-wound ~6 mm wire spiral antenna in the freed space. The
+   electrode over that space (E4) loses 2-5 pF, because the foil it saw in a
+   genuine unit is gone. No air gap or slide gives one electrode a drop that
+   large while its neighbours barely move. After the worst hand-held placement
+   error, 1.3-3.4 pF is left, far above anything else in the table. Whether
+   the implant's ground is tied to the wallet's board hardly matters. The
+   model's layout (third panel of the geometry figure) is estimated from the
+   photos, and at ~6 MHz the touching turns of the spiral act as one small
+   plate. The RF side of this variant is simulated in
+   [fixtures.md](fixtures.md#second-implant-variant-a-hand-wound-spiral).
 
 A working LTE antenna lying flat on a battery foil 0.15 mm away would barely
 radiate. So a real implant probably *needs* part of its antenna beyond the
