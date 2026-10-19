@@ -1,7 +1,8 @@
 # RF test fixtures (rev 0.1 concept): position-independent NanoVNA tests
 
 > Status: **concept, not built, not validated.** The boards are generated, DRC
-> clean and simulated (see the end of this document). Nobody has measured one yet.
+> clean and simulated (see [the end of this document](#simulation-of-the-fixtures)).
+> Nobody has measured one yet.
 
 ## Why these boards
 
@@ -21,9 +22,9 @@ there is a tuned antenna resonance in the LTE bands, rather than where the
 copper is. Untuned metal (the battery, the Ledger's own board and shield) gives
 broad, smooth changes. A tuned antenna gives a narrow feature.
 
-There are two fixtures, with different field directions, because simulation
-alone can't yet say which one couples better to a flat antenna lying in a
-wallet's back shell:
+There are two fixtures, with different field directions. In simulation, both
+see the implant at every placement tested, through different features (see the
+results below), and only a real measurement can say which works better:
 
 | fixture | field over the test area | wallet | ports |
 |---|---|---|---|
@@ -121,13 +122,15 @@ part of the field doesn't care about orientation.
 
 The mismatch at 15 and 30 mm is small enough for comparative tests, because
 only differences against a reference wallet matter. The cell is usable up to
-about 1.2 GHz. Above that, the 100 mm septum supports higher-order modes and
-the response gets bumpy, so its main band is LTE low (700-960 MHz).
+about 1.5 GHz in simulation. Above that, the 100 mm septum supports
+higher-order modes and the response gets bumpy. Use it for LTE low
+(700-960 MHz) and up to ~1.5 GHz.
 
 Inside the cell, E is vertical and H runs across the cell, horizontally. A flat
 antenna lying flat couples mostly through its 3D parts (coax, modem board,
 grounding). Standing the wallet on its long side, length along the cell, puts H
-through the antenna's plane. Measure both ways.
+through the antenna's plane. In simulation the flat position gave a strong
+notch and the edge position gave nothing, so start with flat (0 and 90 deg).
 
 ## Measurement procedure
 
@@ -171,4 +174,68 @@ the Ledger's battery. Alone in free space, the tampered wallet resonates at
 835 MHz, like the hump measured on the real unit. The antenna layout is
 generic, not a copy of the AC-A2016.
 
-Results: *pending, the simulation batch is still running.*
+Each fixture was simulated empty, then with the genuine and the tampered
+wallet at two placements per orientation: centred, and 28 mm off centre (along
+the slot, or along the cell). The two sides of each comparison use the same
+placement. 32 runs in total, ~1.1 h each. Touchstone files:
+`sim/results/fixtures/`. Figure and table: `python sim/report.py fixtures`.
+
+![fixture simulation](img/sim_fixtures.png)
+
+Left: the empty fixture. Right: tampered minus genuine at the same placement
+(solid), and genuine at another placement minus genuine centred (dashed). The
+dashed curves are the false-positive floor. Grey band: 700-960 MHz.
+
+| fixture, orientation | narrow notch, tampered vs. genuine | same notch at the 28 mm offset | genuine moved 28 mm (spread) |
+|---|---|---|---|
+| slot line z = 2 mm, 0 deg | **-0.5 dB at 815-820 MHz**, ~20 MHz wide | -0.55 dB | 0.3 dB, broad |
+| slot line z = 12 mm, 0 deg | -0.37 dB at 835 MHz | -0.38 dB | 0.2 dB, broad |
+| slot line, 90 deg (either z) | none (< 0.01 dB) | none | 0.1 dB |
+| TEM h = 20, flat, 0 deg | -0.17 dB at 750 MHz; **-1.2 dB at 1185 MHz** | -0.17 / -1.3 dB | **0.01 dB** |
+| TEM h = 20, flat, 90 deg | -0.26 dB at 750 MHz; **-6.3 dB at 1210 MHz** | -0.25 / -3.9 dB | 0.03 dB |
+| TEM h = 25, on edge | none (< 0.03 dB) | none | 0.02-0.17 dB |
+
+### What this says
+
+1. **Both flat setups see the implant at every placement simulated, which the
+   10 mm loop could not do.** The notch keeps its depth to within a few tenths
+   of a dB when the wallet moves 28 mm. So the field really is uniform enough
+   over the test area. The genuine wallet produces only broad, smooth changes
+   when it moves.
+2. **The slot line reproduces the measured signature.** At 0 deg it shows a
+   narrow notch at 815-835 MHz. That is the antenna's own resonance (835 MHz in
+   free space), and the same band as the hump measured with the loop. It is
+   small (0.4-0.5 dB) and sits on a 0.2-0.3 dB broad placement spread, but it is
+   ~20 MHz wide, where the spread is hundreds of MHz wide. Lowering the wallet
+   from 12 to 2 mm makes it a little deeper and pulls it down 15-20 MHz.
+3. **The slot line is blind at 90 deg.** Its in-plane E field must lie along
+   the antenna. So measure every wallet at both 0 and 90 deg, as described
+   above: a turned antenna is caught by the other orientation.
+4. **The TEM cell, wallet flat, is the most placement-proof setup.** A genuine
+   wallet moved 28 mm changes S21 by only 0.01-0.03 dB. The tampered wallet
+   shows a narrow notch near 1.2 GHz of 1.2 dB (0 deg) to 4-6 dB (90 deg), at
+   every placement and in both orientations. Its antenna resonance is only a
+   weak -0.2 dB notch at 750 MHz: lying flat over the base, 2-3 mm from ground,
+   it is detuned down and barely excited by the vertical E field. The 1.2 GHz
+   notch is a resonance of the implant's 3D parts (coax, modem board and its
+   ground tie to the wallet's board), which the vertical E field drives well.
+   **Its frequency depends on the model and is not a prediction.** On a real
+   implant, expect a narrow notch somewhere in 0.7-1.5 GHz, and compare against
+   the genuine reference rather than looking at a fixed frequency.
+5. **Standing the wallet on edge in the TEM cell shows nothing** (< 0.03 dB).
+   The antenna's plane then contains the E field and the 3D parts are turned
+   away from it. Skip it unless the measurements say otherwise.
+6. Above ~1.2 GHz the slot line radiates (30-50 %) and moving the wallet
+   changes S21 by several dB, so only use its 700-1000 MHz range. The TEM cell
+   stays clean to ~1.5 GHz.
+
+**Recommended first measurements:** the TEM cell at h = 20 mm with the wallet
+flat (0 and 90 deg), then the slot line at z = 1.6 or 6.6 mm (0 and 90 deg).
+No board change came out of the simulation, so the kit can be ordered as
+generated.
+
+Limits: the antenna is a generic meander tuned to 835 MHz, not the AC-A2016.
+The modem is a 50 ohm resistor behind a 100 nH coil. The battery and board are
+perfect conductors. The real implant's ground connection is still unknown, and
+without the ground tie the 1.2 GHz notch would likely change or disappear.
+Treat the depths as an order of magnitude.

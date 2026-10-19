@@ -80,6 +80,14 @@ in the model) that a plain-copper piece of the same outline does not. That
 feature tells an antenna apart from a battery or other metal, and is within
 reach of a scalar, VNA-less front end.
 
+The first NanoVNA session on a tampered Nano X
+([data/rf/2026-10-18/notes.md](data/rf/2026-10-18/notes.md)) found a clear S21
+hump at 820-850 MHz, but only with the probe right over the antenna's feed. To
+remove that position dependence there is now a **concept RF fixture kit**
+(slot line and open TEM cell, 80 × 80 mm test area, NanoVNA S11/S21), with
+JLCPCB files. See [docs/fixtures.md](docs/fixtures.md). In simulation, both
+fixtures see a narrow tampering notch at every wallet placement tested.
+
 ## Board
 
 | Top | Bottom (sensing side) |
