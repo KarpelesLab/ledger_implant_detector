@@ -22,6 +22,8 @@ how much it changes when the wallet is moved or turned.
 
     python3 sim/fixtures_fdtd.py tune [nH ...]   # tampered wallet alone: resonance vs. matching coil
     python3 sim/fixtures_fdtd.py                  # all fixture cases -> sim/results/fixtures/*.s2p
+    python3 sim/fixtures_fdtd.py tune-grand [eps ...]  # Grand-style spiral implant alone: resonance vs. turn coupling
+    SIM_KINDS=grand python3 sim/fixtures_fdtd.py  # the spiral implant in every fixture placement
 """
 import os
 import sys
@@ -103,6 +105,59 @@ def wallet(kind, a0=A0, tie=True, match_l=MATCH_L, modem_r=MODEM_R):
     return d
 
 
+# ---- second implant variant: Joe Grand's Nano X implant (slides pp. 33-38).
+# A hand-wound pancake spiral of ~8 cm of 0.25-0.3 mm copper wire: ~6 uneven, nearly
+# touching turns, ~6 mm across, lying half over the edge of the implant's own board, fed by
+# the modem at its outer end. The Ledger's battery is replaced by a shorter one (44 -> 26 mm,
+# scaled here to 18 of the model's 30 mm) to make room. The spiral is modelled square, 6 mm,
+# 0.5 mm pitch, on a local 0.25 mm grid. Turns this close couple far more strongly than grid
+# wires 0.5 mm apart: a thin slab of permittivity G_EPS in the coil's plane stands in for
+# that. Its value is not known (pitch and gaps vary along the coil); it sets the resonance
+# (tune-grand), and was chosen to put it in the LTE low band, where the implant must work.
+G_BATTERY = (4.0, 22.0, 2.0, 16.5, 1.5, 5.5)
+G_BOARD = (23.0, 37.0, 3.0, 15.0, 3.0)   # implant board (ground plane), in the battery's old place
+G_SPIRAL = (34.0, 4.0, 6.0, 3.5)         # outer corner x, y, outer side, z: 3 mm over the board edge
+G_WIRE = 80.0                            # wire length (mm)
+G_PITCH = 0.5
+G_EPS = 5.0
+G_TIE = (30.0, 9.0, 3.0, 7.0)            # implant ground -> main PCB ground
+
+
+def spiral(x0, y0, side, length, pitch=G_PITCH):
+    """Square spiral as zero-width segments, from the outer corner (x0, y0) inwards."""
+    segs, p, left = [], (x0, y0), length
+    dirs = ((1, 0), (0, 1), (-1, 0), (0, -1))
+    runs = [side] + [side - pitch * ((k - 1) // 2) for k in range(1, 400)]
+    for k, r in enumerate(runs):
+        r = min(r, left)
+        if r < pitch - E:
+            break
+        dx, dy = dirs[k % 4]
+        q = (p[0] + dx * r, p[1] + dy * r)
+        segs.append((min(p[0], q[0]), max(p[0], q[0]), min(p[1], q[1]), max(p[1], q[1])))
+        p, left = q, left - r
+    return segs, p
+
+
+def wallet_grand(kind, eps=None):
+    """kind: tampered (in a fixture) | antenna (the modem's 50 ohm is the source port)."""
+    eps = G_EPS if eps is None else eps
+    d = wallet('genuine')
+    d['pec'] = [G_BATTERY]
+    x0, y0, side, z = G_SPIRAL
+    zb = G_BOARD[4]
+    segs, _ = spiral(x0, y0, side, G_WIRE)
+    d['sheets'] += [(zb, rects_mask([G_BOARD[:4]])), (z, rects_mask(segs))]
+    d['diel'].append(((G_BOARD[0], x0 + side + 0.5, 2.0, 16.5, zb - 0.5, z), 3.5, 0.02))  # board, parts, glue
+    d['diel'].append(((x0, x0 + side, y0, y0 + side, z - 0.25, z + 0.25), eps, 0.02))     # turn coupling
+    d['pec'].append((G_TIE[0], G_TIE[0], G_TIE[1], G_TIE[1], G_TIE[2], G_TIE[3]))
+    # feed: modem 50 ohm from the board up to the spiral's outer end
+    d['lumped'].append(((x0, y0, zb), (x0, y0, zb + 0.25), MODEM_R, kind == 'antenna'))
+    d['pec'].append((x0, x0, y0, y0, zb + 0.25, z))
+    d['fine'] = [(x0 - 1.0, x0 + side + 1.0, y0 - 1.0, y0 + side + 1.0, zb - 0.5, z + 1.0)]
+    return d
+
+
 ORIENT = {   # columns: where local x, y, z go (signed global axis)
     'flat0': ((1, 0, 0), (0, 1, 0), (0, 0, 1)),      # lying on its back, length along x
     'flat90': ((0, 1, 0), (-1, 0, 0), (0, 0, 1)),    # lying on its back, length along y
@@ -154,9 +209,14 @@ def put_wallet(s, d, pl):
         s.add_lumped(s.edge(pl.g(p), pl.g(q)), R, port=port)
 
 
-def wallet_lines(pl, margin=1.0):
+def wallet_lines(pl, margin=1.0, d=None):
+    """Grid regions per axis: 0.5 mm over the wallet, 0.25 mm over any d['fine'] box."""
     lo, hi = pl.bbox()
-    fine = [(lo[n] - margin, hi[n] + margin, 0.5) for n in range(3)]
+    fine = [[(lo[n] - margin, hi[n] + margin, 0.5)] for n in range(3)]
+    for b in (d or {}).get('fine', []):
+        blo, bhi = pl.box(b)
+        for n in range(3):
+            fine[n].append((blo[n], bhi[n], 0.25))
     return fine
 
 
@@ -183,19 +243,22 @@ def build_cps(pl=None, d=None):
     fy = [(-ye - 3, -ye + 8, 0.5), (ye - 8, ye + 3, 0.5)]
     fz = [(-2.0, 2.0, 0.5)]
     if pl is not None:
-        w = wallet_lines(pl)
-        fine.append(w[0])
-        fy.append(w[1])
-        fz.append(w[2])
+        w = wallet_lines(pl, d=d)
+        fine += w[0]
+        fy += w[1]
+        fz += w[2]
     x = axis([0, -xe, xe], fine + [(-xe - 2, xe + 2, 1.0)], -xe - 25, xe + 25, base=1.0, maxstep=3.0)
     y = axis([0, -ye, ye], fy + [(-ye - 2, ye + 2, 1.0)], -ye - 25, ye + 25, base=1.0, maxstep=3.0)
     z = axis([0.0, -1.5], fz + [(-2.0, 40.0, 1.0)], -25.0, 60.0, base=1.0, maxstep=3.0)
     s = Sim(x, y, z)
     s.dielectric((-xe, xe, -ye - 5, ye + 5), -1.5, 0.0, 4.4, 0.02)
     s.plane('z', 0.0, cps_inside)
+    i0, i1, i2 = s.ni('x', -0.5), s.ni('x', 0.0), s.ni('x', 0.5)
     for yp, src in ((-ye, True), (ye, False)):
-        s.pec['x'][s.ni('x', -0.5), s.ni('y', yp), s.ni('z', 0.0)] = True
-        s.add_lumped(s.edge((0.0, yp, 0.0), (0.5, yp, 0.0)), 50.0, port=src, probe=not src)
+        j, k = s.ni('y', yp), s.ni('z', 0.0)
+        s.pec['x'][i0:i2, j, k] = True                 # bridge to the GND tip, the port on its first edge
+        s.pec['x'][i1, j, k] = False
+        s.add_lumped(('x', i1, j, k), 50.0, port=src, probe=not src)
     if pl is not None:
         put_wallet(s, d, pl)
     return s
@@ -212,10 +275,10 @@ def build_tem(h, pl=None, d=None):
     fy = [(-ye - 3, -ye + 6, 0.5), (ye - 6, ye + 3, 0.5)]
     fz = [(-0.5, 2.0, 0.5)]
     if pl is not None:
-        w = wallet_lines(pl)
-        fine.append(w[0])
-        fy.append(w[1])
-        fz.append(w[2])
+        w = wallet_lines(pl, d=d)
+        fine += w[0]
+        fy += w[1]
+        fz += w[2]
     bx = c['base_w'] / 2
     x = axis([0, -bx, bx, -c['w'] / 2, c['w'] / 2], fine + [(-bx - 2, bx + 2, 1.0)], -bx - 25, bx + 25,
              base=1.0, maxstep=3.0)
@@ -283,13 +346,16 @@ PLACES = {   # placements over the 80 x 80 area: centre and shifted across the w
 }
 
 
+KINDS = os.environ.get('SIM_KINDS', 'genuine,tampered').split(',')
+
+
 def case_list():
     out = []
     for fx, (_, z0, orients) in FIXTURES.items():
         out.append((fx, None, None, None))
         for o in orients:
             for p in PLACES[o]:
-                for kind in ('genuine', 'tampered'):
+                for kind in KINDS:
                     out.append((fx, o, p, kind))
     return out
 
@@ -302,7 +368,13 @@ def run_case(args):
         s = builder(None, None)
     else:
         name = '%s_%s_%+03.0f%+03.0f_%s' % (fx, o, p[0], p[1], kind)
-        s = builder(Place(o, p[0], p[1], z0), wallet(kind))
+        if kind == 'grand':
+            d = wallet_grand('tampered')
+        elif kind == 'gref':                           # genuine on the grand case's refined grid
+            d = dict(wallet('genuine'), fine=wallet_grand('tampered')['fine'])
+        else:
+            d = wallet(kind)
+        s = builder(Place(o, p[0], p[1], z0), d)
     t = time.time()
     f, S11, Z = s.run(t_end=float(os.environ.get('SIM_TEND', '45e-9')), fmin=0.3e9, fmax=3.0e9, nf=541,
                       threads=threads)
@@ -317,9 +389,9 @@ def tune(coils_nh):
     for lnh in coils_nh:
         pl = Place('flat0', 0.0, 0.0, 0.0)
         w = wallet_lines(pl, 1.0)
-        x = axis([0.0], [w[0]], -70, 70, base=1.0, maxstep=3.0)
-        y = axis([0.0], [w[1]], -50, 50, base=1.0, maxstep=3.0)
-        z = axis([0.0], [w[2]], -45, 55, base=1.0, maxstep=3.0)
+        x = axis([0.0], w[0], -70, 70, base=1.0, maxstep=3.0)
+        y = axis([0.0], w[1], -50, 50, base=1.0, maxstep=3.0)
+        z = axis([0.0], w[2], -45, 55, base=1.0, maxstep=3.0)
         s = Sim(x, y, z)
         d = wallet('antenna', a0, match_l=lnh * 1e-9)
         d['pec'].append(BATTERY)
@@ -337,6 +409,29 @@ def tune(coils_nh):
         write_s2p(os.path.join(OUT, 'tune_L%gnH.s2p' % lnh), f, S, np.zeros_like(S), 'tampered alone, coil %g nH' % lnh)
 
 
+def tune_grand(epss):
+    """Grand-style wallet alone in free space, fed at the modem: resonance vs. turn coupling."""
+    for eps in epss:
+        pl = Place('flat0', 0.0, 0.0, 0.0)
+        d = wallet_grand('antenna', eps)
+        w = wallet_lines(pl, 1.0, d)
+        x = axis([0.0], w[0], -70, 70, base=1.0, maxstep=3.0)
+        y = axis([0.0], w[1], -50, 50, base=1.0, maxstep=3.0)
+        z = axis([0.0], w[2], -45, 55, base=1.0, maxstep=3.0)
+        s = Sim(x, y, z)
+        put_wallet(s, d, pl)
+        t = time.time()
+        f, S, Z = s.run(t_end=40e-9, fmin=0.3e9, fmax=3.0e9, nf=541, threads=int(os.environ.get('SIM_THREADS', '16')))
+        db = 20 * np.log10(np.abs(S))
+        m = (f > 0.4e9) & (f < 2.0e9)
+        i = np.argmin(np.where(m, db, 0))
+        print('eps %4.1f  min |S11| %.1f dB at %.0f MHz  Z=%.0f%+.0fj  (%.0f s, %d cells, tail %.1e)' % (
+            eps, db[i], f[i] / 1e6, Z[i].real, Z[i].imag, time.time() - t, np.prod(s.n), s.tail), flush=True)
+        os.makedirs(OUT, exist_ok=True)
+        write_s2p(os.path.join(OUT, 'tune_grand_eps%g.s2p' % eps), f, S, np.zeros_like(S),
+                  'grand-style spiral alone, coupling slab eps %g' % eps)
+
+
 def main():
     import multiprocessing as mp
     threads = int(os.environ.get('SIM_THREADS', '8'))
@@ -352,5 +447,7 @@ def main():
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'tune':
         tune([float(a) for a in sys.argv[2:]] or [MATCH_L * 1e9])
+    elif len(sys.argv) > 1 and sys.argv[1] == 'tune-grand':
+        tune_grand([float(a) for a in sys.argv[2:]] or [G_EPS])
     else:
         main()

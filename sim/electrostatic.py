@@ -11,6 +11,7 @@ board, y across, z up. z = 0 is the electrode plane (board bottom), the wallet
 lies below it (z < 0) with its plastic back against the board.
 
     python3 sim/electrostatic.py            # runs all scenarios, writes sim/results/
+    python3 sim/electrostatic.py grand      # only the spiral-implant variant, merged into the results
 """
 import json
 import os
@@ -47,6 +48,13 @@ BATTERIES = {        # pouch footprints to test
     'batt_35x15': (38.0, 73.0, 3.5, 18.5),          # arm within the outline, most of the feed patch outside it
 }
 PCB_PLATE = (16.0, 80.0, 3.3, 18.3)   # wallet main board ground, below the battery
+# second implant variant (Joe Grand's Nano X implant): the 44 mm battery replaced by a 26 mm
+# one, the implant board and a 6-turn spiral of touching enamelled wire in the freed space.
+# At the FDC2214's ~6 MHz the touching turns act as one ~6 x 6 mm plate.
+G_BATTERY = (39.0, 65.0, 3.0, 19.0)
+G_BOARD = (66.0, 77.5, 4.0, 17.0)     # implant board ground plane
+G_SPIRAL = (78.0, 83.5, 5.0, 10.5)
+G_BOARD_D, G_SPIRAL_D = 1.5, 1.0      # depth below the shell's inner face
 
 
 def axis(fixed, fine_ranges, lo, hi, base=0.5, grow=1.35, maxstep=3.0):
@@ -179,15 +187,20 @@ class Model:
 
 
 def build(t_case, scenario, battery='batt_35x15', dz_gap=0.0, dx_shift=0.0, ant_grounded=False):
-    """scenario: 'genuine' | 'tampered' | 'plastic_only'."""
+    """scenario: 'genuine' | 'tampered' | 'grand' | 'grand_tied' | 'plastic_only'.
+    grand: the spiral implant variant (always with its shortened battery); grand_tied: its
+    board ground joined to the wallet's board, as when the implant runs off the wallet's battery."""
     top = -dz_gap                 # outer face of the shell
     inner = top - t_case          # inner face
     zf = [0.0, IN1_Z, BOARD_T, top, inner, inner - GLUE, inner - GLUE - FPC_T - GLUE,
-          inner - GLUE / 2 - FPC_T / 2, inner - GLUE - BATT_T, inner - 2 * GLUE - FPC_T - BATT_T, inner - 6.0]
+          inner - GLUE / 2 - FPC_T / 2, inner - GLUE - BATT_T, inner - 2 * GLUE - FPC_T - BATT_T, inner - 6.0,
+          inner - G_BOARD_D, inner - G_SPIRAL_D]
     z = axis(zf, [(inner - 0.45, 0.05, 0.025), (0.05, BOARD_T, 0.1), (inner - 6.2, inner - 0.45, 0.25)],
              inner - 24.0, 16.0, base=0.25, grow=1.3, maxstep=3.0)
     xs = [v for e in ELECTRODES.values() for v in (e[0], e[0] + EL_SIZE)] + list(ANT_PATCH[:2]) + list(ANT_ARM[:2])
     ys = [v for e in ELECTRODES.values() for v in (e[1], e[1] + EL_SIZE)] + list(ANT_PATCH[2:]) + list(ANT_ARM[2:])
+    xs += list(G_BATTERY[:2]) + list(G_BOARD[:2]) + list(G_SPIRAL[:2])
+    ys += list(G_BATTERY[2:]) + list(G_BOARD[2:]) + list(G_SPIRAL[2:])
     x = axis(xs, [(8, 92, 0.5)], -10.0, 110.0, base=0.5)
     y = axis(ys, [(-2, 44, 0.5)], -16.0, 58.0, base=0.5)
     m = Model(x, y, z)
@@ -201,6 +214,14 @@ def build(t_case, scenario, battery='batt_35x15', dz_gap=0.0, dx_shift=0.0, ant_
     # wallet shell
     m.dielectric(shift(DEV), inner, top, EPS_CASE)
     if scenario == 'plastic_only':
+        return m
+    if scenario.startswith('grand'):
+        m.dielectric(shift(G_BATTERY), inner - GLUE, inner, EPS_FPC)
+        m.conductor('battery', shift(G_BATTERY), inner - GLUE - BATT_T, inner - GLUE)
+        m.dielectric(shift((G_BOARD[0], G_SPIRAL[1], G_BOARD[2], G_BOARD[3])), inner - G_BOARD_D, inner, EPS_FPC)
+        m.conductor('pcb' if scenario == 'grand_tied' else 'implant', shift(G_BOARD), inner - G_BOARD_D)
+        m.conductor('antenna', shift(G_SPIRAL), inner - G_SPIRAL_D)
+        m.conductor('pcb', shift(PCB_PLATE), inner - 6.0)
         return m
     bx = shift(BATTERIES[battery])
     if scenario == 'tampered':
@@ -236,7 +257,7 @@ def run(t_case, scenario, **kw):
     t0 = time.time()
     m = build(t_case, scenario, **kw)
     m.assemble()
-    floats = ['battery', 'pcb'] + ([] if kw.get('ant_grounded') else ['antenna'])
+    floats = ['battery', 'pcb', 'implant'] + ([] if kw.get('ant_grounded') else ['antenna'])
     c = effective(m, floats)
     print('  %-48s %7.1fs  nodes=%d' % ('%s t=%.1f %s' % (scenario, t_case, kw), time.time() - t0, len(m.lab)), flush=True)
     return c
@@ -255,6 +276,10 @@ def jobs():
             out += [(key, 'genuine', t, 'genuine', {'battery': batt}),
                     (key, 'tampered', t, 'tampered', {'battery': batt}),
                     (key, 'tampered_ant_grounded', t, 'tampered', {'battery': batt, 'ant_grounded': True})]
+        key = 't%.1f_grand' % t
+        out += [(key, 'genuine', t, 'genuine', {'battery': 'batt_covers_all'}),
+                (key, 'grand', t, 'grand', {}),
+                (key, 'grand_tied', t, 'grand_tied', {})]
         # placement repeatability of a genuine unit: 0.1 mm air gap, 0.5 mm slide along x
         key = 't%.1f_repeat' % t
         out += [(key, 'genuine', t, 'genuine', {}),
@@ -263,12 +288,15 @@ def jobs():
     return out
 
 
-def main():
+def main(only=None):
+    """only: run just the jobs whose key contains this string, merged into the existing results."""
     import multiprocessing as mp
     os.makedirs(OUT, exist_ok=True)
-    results = {}
+    path = os.path.join(OUT, 'electrostatic.json')
+    results = json.load(open(path)) if only and os.path.exists(path) else {}
+    todo = [j for j in jobs() if not only or only in j[0]]
     with mp.get_context('spawn').Pool(int(os.environ.get('SIM_PROCS', '18'))) as pool:
-        for key, sub, c in pool.imap_unordered(_job, jobs()):
+        for key, sub, c in pool.imap_unordered(_job, todo):
             results.setdefault(key, {})[sub] = c
     with open(os.path.join(OUT, 'electrostatic.json'), 'w') as f:
         json.dump(results, f, indent=1, sort_keys=True)
@@ -291,6 +319,11 @@ def report(results):
             for k in ('tampered', 'tampered_ant_grounded'):
                 d = [r[k][e] - r['genuine'][e] for e in els]
                 lines.append('  %-38s ' % ('%s, %s' % (batt, k)) + ' '.join('%8.2f' % v for v in d))
+        r = results.get('t%.1f_grand' % t, {})
+        for k in ('grand', 'grand_tied'):
+            if k in r:
+                d = [r[k][e] - r['genuine'][e] for e in els]
+                lines.append('  %-38s ' % ('spiral implant, %s' % k) + ' '.join('%8.2f' % v for v in d))
         lines.append('  absolute C (genuine) ' + ' ' * 17 + ' '.join('%8.0f' % rep['genuine'][e] for e in els))
     txt = '\n'.join(lines)
     print(txt)
@@ -302,4 +335,4 @@ if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'report':
         report(json.load(open(os.path.join(OUT, 'electrostatic.json'))))
     else:
-        main()
+        main(sys.argv[1] if len(sys.argv) > 1 else None)
