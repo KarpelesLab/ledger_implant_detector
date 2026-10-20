@@ -88,6 +88,12 @@ remove that position dependence there is now a **concept RF fixture kit**
 JLCPCB files. See [docs/fixtures.md](docs/fixtures.md). In simulation, both
 fixtures see a narrow tampering notch at every wallet placement tested.
 
+A second, quite different implant (Joe Grand's tampered Nano X: a hand-wound
+~6 mm wire spiral antenna and a shortened battery) is **not** seen by the
+fixtures in simulation: the coil is too small to couple to a uniform field. The
+capacitive array catches it clearly through the missing battery foil
+(1.3-3.4 pF above placement error). So always run both tests.
+
 ## Board
 
 | Top | Bottom (sensing side) |

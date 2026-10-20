@@ -23,8 +23,10 @@ copper is. Untuned metal (the battery, the Ledger's own board and shield) gives
 broad, smooth changes. A tuned antenna gives a narrow feature.
 
 There are two fixtures, with different field directions. In simulation, both
-see the implant at every placement tested, through different features (see the
-results below), and only a real measurement can say which works better:
+see the meander/FPC-style implant at every placement tested, through different
+features (see the results below), and only a real measurement can say which
+works better. Neither sees a compact wire-spiral antenna; the capacitive array
+covers that case (see the last section):
 
 | fixture | field over the test area | wallet | ports |
 |---|---|---|---|
@@ -251,5 +253,47 @@ The Ledger's battery is replaced by a shorter one to make room. The
 capacitive array sees that shortened battery clearly (see
 [simulation.md](simulation.md), point 6).
 
-Results: *pending, the simulation batch is still running.*
+`sim/fixtures_fdtd.py` models it as a 6 mm square spiral of 80 mm of wire,
+1 mm above the implant board and overlapping its edge by 3 mm, fed by the
+modem's 50 ohm at its outer end. The battery is shortened and the implant board
+is tied to the wallet's ground. Alone in free space it resonates at 835 MHz.
+That depends on the unknown height and winding: 795-865 MHz for 0.5-1.5 mm
+above the board, and 660-700 MHz if the turns couple more tightly
+(`sim/results/fixtures/tune_grand_*.s2p`). At resonance the modem sees only
+~10 ohm. The same 14 placements as above were run, plus three genuine
+reference runs on the spiral case's finer grid. Those differ from the normal
+runs by < 0.02 dB, so the grid itself adds nothing.
+
+![spiral implant in the fixtures](img/sim_fixtures_grand.png)
+
+**In simulation, neither fixture sees this implant.**
+
+- In the LTE low band (700-960 MHz), the spiral implant changes S21 by less
+  than 0.02 dB at every placement, in both fixtures and all orientations.
+- The broad changes it does cause (up to 0.35 dB on the slot line) are the
+  same size as those from merely moving a genuine wallet.
+- The TEM cell shows a narrow notch at ~2.18 GHz (0.5-2 dB), from a higher
+  resonance of the coil. Above 2 GHz, though, the cell is no longer a clean
+  TEM line: a genuine wallet moved 28 mm gives narrow changes of up to 1.5 dB
+  there too. That rules it out as a test.
+
+The reason is size. The coil is a 6 mm loop lying 1 mm over its own board's
+ground, so its field stays between the coil and the board. A field spread over
+80 x 80 mm hardly links to it. The meander implant above has copper running
+along the whole wallet, and its coax and modem board stick up into the field.
+A real implant with a matching network would absorb more at its resonance, but
+it would still couple just as weakly.
+
+What does catch this variant is the **capacitive array**. Its shortened
+battery leaves 1.3-3.4 pF above the worst placement error on one electrode
+([simulation.md](simulation.md), point 6). That also tells you where to look.
+A small loop held over that spot, like the detector's own 8 mm loop or the
+H-loop used in the NanoVNA sessions, couples to a 6 mm coil by mutual
+inductance, which no uniform-field fixture can do. That probe has not been
+simulated over this coil yet.
+
+What to do with the fixtures: they are still the position-independent test
+for antennas spread along the wallet, like the meander/FPC type. A clean result
+on a fixture does **not** rule out a compact coil antenna. Always run the
+capacitive scan as well.
 

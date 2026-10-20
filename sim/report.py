@@ -256,7 +256,7 @@ def fixtures(kind='tampered', png='sim_fixtures.png'):
         axs[r, 1].legend(fontsize=6, frameon=False, ncol=2)
     axs[0, 0].legend(fontsize=7, frameon=False)
     axs[0, 0].set_title('empty fixture')
-    axs[0, 1].set_title('%s vs. genuine at the same placement (solid), genuine moved (dashed)'
+    axs[0, 1].set_title('%s vs. genuine, same placement (solid); genuine moved (dashed)'
                         % {'grand': 'spiral implant'}.get(kind, kind))
     for ax in axs[-1]:
         ax.set_xlabel('GHz')
