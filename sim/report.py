@@ -3,6 +3,8 @@
 
     python3 sim/report.py electrostatic
     python3 sim/report.py rf
+    python3 sim/report.py fixtures
+    python3 sim/report.py fixtures-grand
 """
 import glob
 import json
@@ -200,9 +202,10 @@ def rf():
         print('%-6s %-11s %4.0f-%-8.0f %8.2f dB %8.1f deg %9.3f' % row)
 
 
-def fixtures():
+def fixtures(kind='tampered', png='sim_fixtures.png'):
     """Fixture comparison (sim/fixtures_fdtd.py): S21 change tampered vs. genuine at each placement,
-    against the change a genuine wallet shows when it is merely moved."""
+    against the change a genuine wallet shows when it is merely moved. kind: tampered (meander
+    implant) | grand (spiral implant)."""
     from analyze_s1p import read_s1p, db
     d = os.path.join(HERE, 'results', 'fixtures')
     data = {}
@@ -228,14 +231,14 @@ def fixtures():
             axs[r, 0].plot(f / 1e9, db(e[1]), color='0.6', lw=1, ls=':', label='empty |S11|')
         g0 = None
         for k, gname in enumerate(cases):
-            tname = gname[:-len('genuine')] + 'tampered'
+            tname = gname[:-len('genuine')] + kind
             if tname not in data:
                 continue
             f, g11, g21 = data[gname]
             _, t11, t21 = data[tname]
             place = gname[len(fx) + 1:-len('_genuine')]
             c = plt.cm.tab10(k)
-            axs[r, 1].plot(f / 1e9, db(t21) - db(g21), color=c, lw=1.3, label='tampered - genuine, ' + place)
+            axs[r, 1].plot(f / 1e9, db(t21) - db(g21), color=c, lw=1.3, label='%s - genuine, %s' % (kind, place))
             if g0 is None:
                 g0 = (place, g21)
             else:
@@ -253,18 +256,29 @@ def fixtures():
         axs[r, 1].legend(fontsize=6, frameon=False, ncol=2)
     axs[0, 0].legend(fontsize=7, frameon=False)
     axs[0, 0].set_title('empty fixture')
-    axs[0, 1].set_title('tampered vs. genuine at the same placement (solid), genuine moved (dashed)')
+    axs[0, 1].set_title('%s vs. genuine at the same placement (solid), genuine moved (dashed)'
+                        % {'grand': 'spiral implant'}.get(kind, kind))
     for ax in axs[-1]:
         ax.set_xlabel('GHz')
         ax.set_xlim(0.3, 2.0)
     fig.tight_layout()
-    fig.savefig(os.path.join(IMG, 'sim_fixtures.png'), dpi=130)
+    fig.savefig(os.path.join(IMG, png), dpi=130)
     plt.close(fig)
     print('%-8s %-16s %8s %8s %8s %8s' % ('fixture', 'placement', 'max dB', 'min dB', 'at MHz', 'max|dS11|'))
     for row in rows:
         print('%-8s %-16s %8.2f %8.2f %8.0f %8.3f' % row)
+    # grid check: the genuine wallet on the spiral case's refined grid vs. the normal grid
+    for n in sorted(x for x in data if x.endswith('_gref')):
+        g = data.get(n[:-len('gref')] + 'genuine')
+        if g:
+            f = g[0]
+            dd = db(data[n][2]) - db(g[2])
+            m = (f >= band[0]) & (f <= band[1])
+            print('grid check %-28s max |dS21| %.3f dB in band, %.3f dB below 2 GHz'
+                  % (n, np.abs(dd[m]).max(), np.abs(dd[f < 2e9]).max()))
 
 
 if __name__ == '__main__':
     os.makedirs(IMG, exist_ok=True)
-    {'electrostatic': electrostatic, 'rf': rf, 'fixtures': fixtures}[sys.argv[1]]()
+    {'electrostatic': electrostatic, 'rf': rf, 'fixtures': fixtures,
+     'fixtures-grand': lambda: fixtures('grand', 'sim_fixtures_grand.png')}[sys.argv[1]]()
