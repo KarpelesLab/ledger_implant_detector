@@ -22,7 +22,7 @@ how much it changes when the wallet is moved or turned.
 
     python3 sim/fixtures_fdtd.py tune [nH ...]   # tampered wallet alone: resonance vs. matching coil
     python3 sim/fixtures_fdtd.py                  # all fixture cases -> sim/results/fixtures/*.s2p
-    python3 sim/fixtures_fdtd.py tune-grand [eps ...]  # Grand-style spiral implant alone: resonance vs. turn coupling
+    python3 sim/fixtures_fdtd.py tune-grand [eps[:h] ...]  # Grand-style spiral implant alone: resonance vs. turn coupling
     SIM_KINDS=grand python3 sim/fixtures_fdtd.py  # the spiral implant in every fixture placement
 """
 import os
@@ -112,14 +112,18 @@ def wallet(kind, a0=A0, tie=True, match_l=MATCH_L, modem_r=MODEM_R):
 # scaled here to 18 of the model's 30 mm) to make room. The spiral is modelled square, 6 mm,
 # 0.5 mm pitch, on a local 0.25 mm grid. Turns this close couple far more strongly than grid
 # wires 0.5 mm apart: a thin slab of permittivity G_EPS in the coil's plane stands in for
-# that. Its value is not known (pitch and gaps vary along the coil); it sets the resonance
-# (tune-grand), and was chosen to put it in the LTE low band, where the implant must work.
+# that. Its value is not known (pitch and gaps vary along the coil); with the spiral resting
+# ~1 mm over the board's ground, the free-space resonance (tune-grand) is 795-865 MHz with no
+# extra coupling (eps 1, h 0.5-1.5 mm) and 660-700 MHz with eps 3. The fixture runs use
+# eps 1, h 1 mm: 835 MHz, in the LTE low band where the implant must work. Without a matching
+# network the modem sees only ~10 ohm there: a weakly coupled, conservative case.
 G_BATTERY = (4.0, 22.0, 2.0, 16.5, 1.5, 5.5)
 G_BOARD = (23.0, 37.0, 3.0, 15.0, 3.0)   # implant board (ground plane), in the battery's old place
-G_SPIRAL = (34.0, 4.0, 6.0, 3.5)         # outer corner x, y, outer side, z: 3 mm over the board edge
+G_SPIRAL = (34.0, 4.0, 6.0)              # outer corner x, y, outer side: 3 mm over the board edge
+G_HEIGHT = 1.0                           # spiral above the board's ground (it rests on components)
 G_WIRE = 80.0                            # wire length (mm)
 G_PITCH = 0.5
-G_EPS = 5.0
+G_EPS = 1.0
 G_TIE = (30.0, 9.0, 3.0, 7.0)            # implant ground -> main PCB ground
 
 
@@ -139,13 +143,14 @@ def spiral(x0, y0, side, length, pitch=G_PITCH):
     return segs, p
 
 
-def wallet_grand(kind, eps=None):
+def wallet_grand(kind, eps=None, height=None):
     """kind: tampered (in a fixture) | antenna (the modem's 50 ohm is the source port)."""
     eps = G_EPS if eps is None else eps
     d = wallet('genuine')
     d['pec'] = [G_BATTERY]
-    x0, y0, side, z = G_SPIRAL
+    x0, y0, side = G_SPIRAL
     zb = G_BOARD[4]
+    z = zb + (G_HEIGHT if height is None else height)
     segs, _ = spiral(x0, y0, side, G_WIRE)
     d['sheets'] += [(zb, rects_mask([G_BOARD[:4]])), (z, rects_mask(segs))]
     d['diel'].append(((G_BOARD[0], x0 + side + 0.5, 2.0, 16.5, zb - 0.5, z), 3.5, 0.02))  # board, parts, glue
@@ -409,11 +414,13 @@ def tune(coils_nh):
         write_s2p(os.path.join(OUT, 'tune_L%gnH.s2p' % lnh), f, S, np.zeros_like(S), 'tampered alone, coil %g nH' % lnh)
 
 
-def tune_grand(epss):
-    """Grand-style wallet alone in free space, fed at the modem: resonance vs. turn coupling."""
-    for eps in epss:
+def tune_grand(cases):
+    """Grand-style wallet alone in free space, fed at the modem: resonance vs. turn coupling
+    and height over the board. cases: 'eps' or 'eps:height' strings."""
+    for c in cases:
+        eps, h = (list(map(float, c.split(':'))) + [G_HEIGHT])[:2]
         pl = Place('flat0', 0.0, 0.0, 0.0)
-        d = wallet_grand('antenna', eps)
+        d = wallet_grand('antenna', eps, h)
         w = wallet_lines(pl, 1.0, d)
         x = axis([0.0], w[0], -70, 70, base=1.0, maxstep=3.0)
         y = axis([0.0], w[1], -50, 50, base=1.0, maxstep=3.0)
@@ -425,11 +432,11 @@ def tune_grand(epss):
         db = 20 * np.log10(np.abs(S))
         m = (f > 0.4e9) & (f < 2.0e9)
         i = np.argmin(np.where(m, db, 0))
-        print('eps %4.1f  min |S11| %.1f dB at %.0f MHz  Z=%.0f%+.0fj  (%.0f s, %d cells, tail %.1e)' % (
-            eps, db[i], f[i] / 1e6, Z[i].real, Z[i].imag, time.time() - t, np.prod(s.n), s.tail), flush=True)
+        print('eps %4.1f  h %.2f  min |S11| %.1f dB at %.0f MHz  Z=%.0f%+.0fj  (%.0f s, %d cells, tail %.1e)' % (
+            eps, h, db[i], f[i] / 1e6, Z[i].real, Z[i].imag, time.time() - t, np.prod(s.n), s.tail), flush=True)
         os.makedirs(OUT, exist_ok=True)
-        write_s2p(os.path.join(OUT, 'tune_grand_eps%g.s2p' % eps), f, S, np.zeros_like(S),
-                  'grand-style spiral alone, coupling slab eps %g' % eps)
+        write_s2p(os.path.join(OUT, 'tune_grand_eps%g_h%g.s2p' % (eps, h)), f, S, np.zeros_like(S),
+                  'grand-style spiral alone, coupling slab eps %g, %g mm over the board' % (eps, h))
 
 
 def main():
@@ -448,6 +455,6 @@ if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'tune':
         tune([float(a) for a in sys.argv[2:]] or [MATCH_L * 1e9])
     elif len(sys.argv) > 1 and sys.argv[1] == 'tune-grand':
-        tune_grand([float(a) for a in sys.argv[2:]] or [G_EPS])
+        tune_grand(sys.argv[2:] or [str(G_EPS)])
     else:
         main()
