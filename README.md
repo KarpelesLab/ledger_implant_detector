@@ -88,6 +88,16 @@ remove that position dependence there is now a **concept RF fixture kit**
 JLCPCB files. See [docs/fixtures.md](docs/fixtures.md). In simulation, both
 fixtures see a narrow tampering notch at every wallet placement tested.
 
+**First fixture measurements (2026-10-26, one genuine and one tampered Nano X,
+[data/rf/2026-10-26/notes.md](data/rf/2026-10-26/notes.md)):** the TEM cell
+shows a ~1 dB, ~40 MHz wide notch at 1171 MHz on the tampered unit in all 12
+captures, at every placement and in both orientations. The simulation predicted
+-1.2 dB at 1185 MHz. 18 of 19 genuine captures stay within 0.22 dB. One genuine
+capture showed a similar notch at ~1230 MHz that did not repeat, cause unknown.
+The slot line sees the antenna's 820-860 MHz resonance only weakly (~0.15 dB)
+and only at 0 deg. This is promising but not yet validation: it is one unit of
+each kind.
+
 A second, quite different implant (Joe Grand's tampered Nano X: a hand-wound
 ~6 mm wire spiral antenna and a shortened battery) is **not** seen by the
 fixtures in simulation: the coil is too small to couple to a uniform field. The

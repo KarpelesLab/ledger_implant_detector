@@ -174,6 +174,56 @@ placement of the tampered unit and absent from all genuine placements. Broad
 offsets of a dB or two that follow the wallet's position are placement effects,
 not tampering.
 
+Check that the NanoVNA has recalled the calibration slot that covers your span
+(`recall 0`). The device boots into the last recalled slot, and points outside
+that slot's calibration span read 0.
+
+## Measured results, 2026-10-26
+
+First session with the kit as ordered: one genuine Nano X (`u1`) and the real
+implanted Nano X (FPC antenna variant), NanoVNA-F V2, 50 MHz - 3 GHz, 401
+points, 4x averaging. The raw data and the full log are in
+[`data/rf/2026-10-26/`](../data/rf/2026-10-26/notes.md). All numbers are S21,
+the wallet capture minus the mean of the genuine centred 0 deg captures.
+
+**TEM cell, h = 20 mm, wallet flat: the implant is seen at every placement.**
+
+| | result in 1100-1300 MHz |
+|---|---|
+| tampered, 12 captures (centre x9, 20 mm along, 20 mm across, 90 deg) | **narrow notch at 1171 MHz in all 12**: -0.95..-1.10 dB at 0 deg, -0.8 dB 20 mm along, ~-0.65 dB at 90 deg; ~40 MHz wide |
+| tampered, interleaved run (6 captures, each lifted out and replaced) | -0.95..-0.99 dB, all at 1171 MHz |
+| genuine, 19 captures | 18 within -0.22..+0.07 dB (interleaved run, leave-one-out reference: -0.19..+0.03 dB) |
+| genuine outlier (#4, first after the tampered set) | -1.1 dB, ~100 MHz wide, centred ~1230 MHz; not repeated in 7 later placements, cause unknown |
+
+The simulation predicted **-1.2 dB at 1185 MHz** for this setup, from the
+implant's coax and modem board. The measured depth and frequency are within
+1-2 % of that. The one miss is orientation: the simulation gave 90 deg the
+deeper notch (-6.3 dB), but measured 90 deg is the weaker one. The weak 750 MHz
+antenna notch from the simulation could not be separated from a baseline shift
+of the cell after the cables were moved.
+
+**Slot line, wallet on the carrier (z = 1.6 mm): weak and orientation-bound, as
+predicted.** At 0 deg a dip at 817-861 MHz of -0.13..-0.20 dB at all five
+tampered placements, against -0.05..+0.03 dB for the independent genuine
+placements. That is the antenna's resonance, the band of the 10 mm loop hump,
+at about a third of the simulated -0.5 dB. At 90 deg there is nothing, as
+predicted. Most of what the wallet seems to do to the slot line (a step at
+~800 MHz, a hump at ~1.1 GHz, up to +-1 dB) is the carrier's FR4, not the
+wallet.
+
+**What this means for now:**
+
+- For this implant, the TEM cell is the test to use. Look for a ~40 MHz wide
+  notch of about 1 dB that shows at the same frequency at every placement. A
+  single notch near 1.2 GHz on its own is not proof yet, because genuine
+  capture #4 shows that something can make a similar notch. Its frequency
+  (1230 vs 1171 MHz) and width set it apart, and it did not repeat.
+- The slot line confirms the antenna's resonance at 0 deg, but with ~0.15 dB of
+  margin it is not a test on its own.
+- This is one genuine and one tampered unit. Next: narrow, higher-resolution
+  sweeps of 700-800 and 1100-1300 MHz, a second genuine unit, and a true empty
+  slot line capture to close the slot data.
+
 ## Simulation of the fixtures
 
 `sim/fixtures_fdtd.py` models both fixtures in FDTD, with a Nano X-sized wallet:
