@@ -35,7 +35,9 @@ SLOT = dict(gap=90.0, strip=25.0, straight=45.0, taper_end=95.0, tip_w=10.0, boa
 SLOT_CARRIER_HOLES = [(sx * 57.5, sy * 50.0) for sx in (-1, 1) for sy in (-1, 1)]
 SLOT_FEET = [(sx * 69.0, sy * 94.0) for sx in (-1, 1) for sy in (-1, 1)]
 
-TEM = dict(w=100.0, length=100.0, ramp_len=55.0, tip_w=3.0, base=(70.0, 108.0))
+# ramp: ramp_len of taper + a straight tab; it is rigid, so the end of the tab is what lands on the base.
+# Its wide edge overlaps the plate's bare strip from below by `overlap`.
+TEM = dict(w=100.0, length=100.0, ramp_len=55.0, tab=4.0, overlap=4.0, tip_w=3.0, base=(70.0, 108.0))
 TEM_PLATE_HOLES = [(sx * 45.0, sy * 40.0) for sx in (-1, 1) for sy in (-1, 1)]
 TEM_FEET = [(sx * 64.0, sy * 102.0) for sx in (-1, 1) for sy in (-1, 1)]
 TEM_H = (15.0, 20.0, 25.0, 30.0)
@@ -329,8 +331,10 @@ def build_slot():
 # ---- open TEM cell ---------------------------------------------------------------
 
 
-def ramp_proj(h):
-    return math.sqrt(TEM['ramp_len'] ** 2 - h ** 2)
+def ramp_tip_y(h):
+    """|y| where the ramp's tip touches the base, for septum spacers of length h."""
+    c = TEM
+    return c['length'] / 2 - c['overlap'] + math.sqrt((c['ramp_len'] + c['tab']) ** 2 - h ** 2)
 
 
 def build_tem_base():
@@ -340,7 +344,7 @@ def build_tem_base():
     # the landing lines end open on purpose: the ramp tip is soldered onto them
     bd = Board('tem_base', 'Implant detector RF fixture: open TEM cell, base', ignore=('track_dangling',))
     bd.outline(rounded(-bx, -by, bx, by, 4.0))
-    land0 = hl + ramp_proj(max(TEM_H)) - 3.0
+    land0 = ramp_tip_y(max(TEM_H)) - 3.0
     pad_y = by - 2.6
     # full ground on both layers, landing lines cut out of F.Cu
     bd.zone([pcbnew.F_Cu, pcbnew.B_Cu], rect(-bx, -by, bx, by), 'GND', clearance=MS_GAP)
@@ -350,7 +354,7 @@ def build_tem_base():
         bd.sma(ref, 0.0, yp, (0, sy), sig)
         bd.track((0, sy * land0), (0, yp), MS_W, sig)
         # bare copper where the ramp tip gets soldered
-        y_lo, y_hi = land0, hl + ramp_proj(min(TEM_H)) + 0.4
+        y_lo, y_hi = land0, ramp_tip_y(min(TEM_H)) + 0.4
         bd.shape(pcbnew.F_Mask, rect(-MS_W / 2, min(sy * y_lo, sy * y_hi), MS_W / 2, max(sy * y_lo, sy * y_hi)),
                  fill=True)
         # via fence along the landing line
@@ -363,7 +367,7 @@ def build_tem_base():
             bd.via(x, yp - sy * 1.0, 'GND', 0.6, 0.3)
         # landing range marks: where the ramp tip lands for each spacer length
         for h in TEM_H:
-            yl = sy * (hl + ramp_proj(h))
+            yl = sy * ramp_tip_y(h)
             bd.shape(pcbnew.F_SilkS, [(MS_W / 2 + 1.6, yl), (MS_W / 2 + 4.0, yl)], w=0.2, closed=False)
             bd.text('h%g' % h, MS_W / 2 + 7.0, yl, 1.2)
         bd.text('PORT %d' % (1 if sy < 0 else 2), -14, sy * (by - 6), 2.5)
@@ -416,16 +420,16 @@ def build_tem_plate():
     bd.text('TEM SEPTUM PLATE', 0, -10, 3.0)
     bd.text(REV, 0, -5, 1.8)
     bd.text('both sides are the same conductor', 0, 2, 1.6)
-    bd.text('join the ramps along the bare edges', 0, 6, 1.6)
+    bd.text('ramps overlap the bare strips from below', 0, 6, 1.6)
     bd.text('(copper tape + solder tacks, both faces)', 0, 9.5, 1.6)
     return bd.save()
 
 
 def ramp_outline():
     c = TEM
-    L, w2, t2 = c['ramp_len'], c['w'] / 2, c['tip_w'] / 2
-    # y = 0 at the septum joint, +L at the tip; a 4 mm straight tab carries the tip onto the landing line
-    return [(-w2, 0), (w2, 0), (t2, L), (t2, L + 4), (-t2, L + 4), (-t2, L)]
+    L, T, w2, t2 = c['ramp_len'], c['tab'], c['w'] / 2, c['tip_w'] / 2
+    # y = 0 at the wide edge, +L at the end of the taper; a straight tab carries the tip onto the landing line
+    return [(-w2, 0), (w2, 0), (t2, L), (t2, L + T), (-t2, L + T), (-t2, L)]
 
 
 def build_tem_ramp():
@@ -445,10 +449,10 @@ def build_tem_ramp():
         y += 8.0
     for layer in (pcbnew.F_Mask, pcbnew.B_Mask):
         bd.shape(layer, rect(-c['w'] / 2, 0, c['w'] / 2, 4), fill=True)
-        bd.shape(layer, rect(-c['tip_w'] / 2, L, c['tip_w'] / 2, L + 4), fill=True)
+        bd.shape(layer, rect(-c['tip_w'] / 2, L, c['tip_w'] / 2, L + c['tab']), fill=True)
     bd.text('TEM RAMP', 0, 12, 3.0)
     bd.text(REV, 0, 17, 1.6)
-    bd.text('wide edge -> septum, tip -> landing line', 0, 21, 1.4)
+    bd.text('wide edge 4 mm under the septum, tip -> landing line', 0, 21, 1.4)
     bd.text('same tip landing marks: h15..h30', 0, 24, 1.4)
     return bd.save()
 

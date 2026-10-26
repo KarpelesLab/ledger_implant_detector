@@ -81,11 +81,13 @@ def capture(sh, f0, f1, n, avg, s21=False):
                 fj, sj = sh.scan(round(a), round(b), m, s21)
                 if np.all(np.abs(sj[:, 0]) > 0):
                     break
-                # seen on the NanoVNA-F V2: everything above ~900 MHz comes back as 0 until a power cycle
+                # NanoVNA-F V2: points outside the active calibration's span come back as 0. A narrow-span
+                # save slot (e.g. a 700-1000 MHz display setup) recalled at power-on does exactly this.
                 print('scan returned %d zero points (first at %.0f MHz), retrying'
                       % ((sj[:, 0] == 0).sum(), fj[sj[:, 0] == 0][0] / 1e6), file=sys.stderr)
             else:
-                sys.exit('device keeps returning zeros: power-cycle it (cal is in save slot 0 if saved)')
+                sys.exit('device keeps returning zeros: the active calibration does not cover this span. '
+                         "`raw 'recall 0'` (the slot `cal done` saves to); if that does not help, power-cycle it")
             acc = acc + sj
         f, s = np.concatenate([f, fj]), np.concatenate([s, acc / avg])
     o = np.argsort(f)

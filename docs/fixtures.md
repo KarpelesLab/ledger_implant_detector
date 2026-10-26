@@ -109,10 +109,19 @@ part of the field doesn't care about orientation.
 2. Screw four nylon spacers of length **h** into the holes at (+-45, +-40) mm,
    and put the septum plate on top. Both faces of the plate and of the ramps are
    the same conductor.
-3. Join each ramp's wide bare edge to a bare edge of the septum with copper
-   tape on both faces, plus a few solder tacks. Let the ramp hang down to the
-   base. Its tip lands on the landing line at the silk mark for your h
-   (`h15` ... `h30`). Solder the tip to the line.
+3. Slide each ramp's wide bare edge **under** the septum plate so that its
+   4 mm bare strip overlaps the plate's 4 mm bare strip. Tape them with copper
+   tape on both faces, and add a few solder tacks. Let the ramp hang down to
+   the base. The ramp is rigid, so the end of its 4 mm tab is what touches the
+   base. With the 4 mm overlap, that point is on the landing line at the silk
+   mark for your h (`h15` ... `h30`, to within ~1 mm). Solder the tip to the
+   line.
+
+   Do not butt the ramp against the plate's edge instead. The tip then lands
+   4-5 mm further out, on the SMA's centre pin at h = 20 and past it at
+   h = 15. Boards generated before this fix had silk marks that ignored the
+   tab. They sit 0.3-0.7 mm inward of the overlapped tip, which is close
+   enough.
 4. Feet in the corner holes, as for the slot line.
 
 | h (spacer length) | cell impedance | notes |
