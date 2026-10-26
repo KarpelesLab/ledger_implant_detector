@@ -68,6 +68,24 @@ All differences are S21, wallet capture minus the mean of the genuine centred 0 
   the sim (-0.17 dB at 750 MHz, the antenna's own resonance detuned by lying flat near ground). Window chosen
   after looking at the data; margin too thin to use alone.
 
+### TEM cell, interleaved run (21:47-22:01)
+
+Cables moved back from the slot line; `tem_h20_empty_i0` within ~0.2 dB of the first empty captures.
+Then 6 genuine / 6 tampered placements alternated, all centred 0 deg, full lift-out each time
+(`*_r0c0_i1..6`, order G1 T1 G2 T2 ... G6 T6), then `tem_h20_empty_i1`.
+
+| | deepest point in 1100-1300 MHz, minus the mean of G1..G6 |
+|---|---|
+| tampered T1..T6 | **-0.96 / -0.96 / -0.99 / -0.98 / -0.97 / -0.95 dB, all at 1171 MHz** (half-depth 1164-1186 MHz) |
+| genuine G1..G6 | all within -0.16..+0.07 dB (G1 -0.16 lowest, consistent with the drift trend) |
+
+- No genuine placement reproduced the #4 event: it is 1 of 13 genuine centred placements this session,
+  still unexplained.
+- Empty-cell drift over the run: +0.22..+0.50 dB, broad (+0.26..+0.30 dB flat across 1150-1200 MHz), so
+  it shifts the baseline but cannot make or hide a 40 MHz notch.
+- The 736-751 MHz "dip" reads -0.10..-0.13 dB on **both** units in this run against the earlier genuine
+  reference: it is a baseline shift of the cell after the cables were moved, not an implant feature. Dropped.
+
 ### Slot line, z = 1.6 mm: small dip at 817-861 MHz at 0 deg only
 
 Dip = mean 817-861 MHz minus the mean of 773-802 and 876-906 MHz.
@@ -91,9 +109,9 @@ Dip = mean 817-861 MHz minus the mean of 773-802 and 876-906 MHz.
 ## Takeaways
 
 - The TEM cell gives a position-independent signature on this implant: a ~1 dB, ~40 MHz notch at 1171 MHz
-  at every placement and orientation, against <= 0.2 dB for 6 of 7 genuine placements. One genuine
-  placement produced a similar notch at ~1230 MHz; that needs explaining before this is a test.
+  at every placement and orientation (12 of 12 tampered captures, repeating to 0.04 dB in the interleaved
+  run), against <= 0.2 dB for 18 of 19 genuine captures. One genuine placement (#4) produced a similar
+  notch at ~1230 MHz and has not recurred in 7 later placements; its cause is unknown.
 - The slot line sees the antenna resonance only at 0 deg and only weakly (~0.15 dB).
-- Next: repeat the TEM genuine set interleaved with the tampered unit to see how often a #4-like event
-  happens; narrow, higher-resolution sweeps around 700-800 and 1100-1300 MHz (more points, more averaging);
+- Next: narrow, higher-resolution sweeps around 700-800 and 1100-1300 MHz (more points, more averaging);
   a second genuine unit; a true empty slot capture to close the slot data.
