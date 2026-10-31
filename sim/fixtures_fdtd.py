@@ -166,6 +166,7 @@ def wallet_grand(kind, eps=None, height=None):
 ORIENT = {   # columns: where local x, y, z go (signed global axis)
     'flat0': ((1, 0, 0), (0, 1, 0), (0, 0, 1)),      # lying on its back, length along x
     'flat90': ((0, 1, 0), (-1, 0, 0), (0, 0, 1)),    # lying on its back, length along y
+    'flat180': ((-1, 0, 0), (0, -1, 0), (0, 0, 1)),  # lying on its back, turned end for end
     'edge': ((0, 1, 0), (0, 0, 1), (1, 0, 0)),       # standing on a long side, length along y
 }
 

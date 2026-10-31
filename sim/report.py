@@ -5,6 +5,7 @@
     python3 sim/report.py rf
     python3 sim/report.py fixtures
     python3 sim/report.py fixtures-grand
+    python3 sim/report.py xloop
 """
 import glob
 import json
@@ -211,7 +212,7 @@ def fixtures(kind='tampered', png='sim_fixtures.png'):
     data = {}
     for p in glob.glob(os.path.join(d, '*.s2p')):
         n = os.path.basename(p)[:-4]
-        if n.startswith('tune'):
+        if n.startswith('tune') or n.startswith('xloop'):
             continue
         f, s11 = read_s1p(p)
         _, s21 = read_s1p(p, 1)
@@ -278,7 +279,104 @@ def fixtures(kind='tampered', png='sim_fixtures.png'):
                   % (n, np.abs(dd[m]).max(), np.abs(dd[f < 2e9]).max()))
 
 
+def narrow_peak(f, s, lo=0.65e9, hi=1.05e9, win=80e6):
+    """Height (dB) of the strongest narrow feature in [lo, hi]: |S| in dB minus a running median
+    over +-win. Broad slopes and offsets (placement) cancel; a resonance tens of MHz wide stays."""
+    from analyze_s1p import db
+    d = db(s) if np.iscomplexobj(s) else s
+    df = f[1] - f[0]
+    k = max(1, int(win / df))
+    base = np.array([np.median(d[max(0, i - k):i + k + 1]) for i in range(len(d))])
+    m = (f >= lo) & (f <= hi)
+    r = (d - base)[m]
+    i = int(np.argmax(np.abs(r)))
+    return float(r[i]), float(f[m][i] / 1e6)
+
+
+def xloop():
+    """Crossed-loop fixture (sim/xloop_fdtd.py): raw |S21| through the two loops (empty = null),
+    and the S21 / S11 changes tampered vs. genuine at the same placement."""
+    from analyze_s1p import read_s1p, db
+    d = os.path.join(HERE, 'results', 'fixtures')
+    data = {}
+    for p in glob.glob(os.path.join(d, 'xloop*.s2p')):
+        n = os.path.basename(p)[:-4]
+        f, s11 = read_s1p(p)
+        _, s21 = read_s1p(p, 1)
+        data[n] = (f, s11, s21)
+    rows_ = sorted({'_'.join(n.split('_')[:2]) for n in data})
+    titles = {'xv': 'two vertical loops, crossed', 'hv': 'horizontal loop under + vertical loop'}
+    fig, axs = plt.subplots(len(rows_), 3, figsize=(14, 2.8 * len(rows_)), sharex=True, squeeze=False)
+    band = (650e6, 1300e6)
+    table = []
+    for r, fx in enumerate(rows_):
+        tag, cfg = fx.split('_')
+        e = data.get(fx + '_empty')
+        if e is not None:
+            axs[r, 0].plot(e[0] / 1e9, db(e[2]), color='k', lw=1, label='empty')
+        gens = sorted(n for n in data if n.startswith(fx + '_') and n.endswith('_genuine'))
+        ref = {}
+        for k, gname in enumerate(gens):
+            tname = gname[:-len('genuine')] + 'tampered'
+            if tname not in data:
+                continue
+            place = gname[len(fx) + 1:-len('_genuine')]
+            orient = place.split('_')[0]
+            f, g11, g21 = data[gname]
+            _, t11, t21 = data[tname]
+            c = plt.cm.tab10(k)
+            axs[r, 0].plot(f / 1e9, db(g21), color=c, lw=0.9, ls='--')
+            axs[r, 0].plot(f / 1e9, db(t21), color=c, lw=1.3, label=place)
+            axs[r, 1].plot(f / 1e9, db(t21) - db(g21), color=c, lw=1.3, label='tampered - genuine, ' + place)
+            axs[r, 2].plot(f / 1e9, db(t11) - db(g11), color=c, lw=1.3, label=place)
+            m = (f >= band[0]) & (f <= band[1])
+            spread21 = spread11 = float('nan')
+            if orient in ref:
+                p0, r21, r11 = ref[orient]
+                axs[r, 1].plot(f / 1e9, db(g21) - db(r21), color=c, lw=0.9, ls='--',
+                               label='genuine moved: %s - %s' % (place, p0))
+                axs[r, 2].plot(f / 1e9, db(g11) - db(r11), color=c, lw=0.9, ls='--')
+                spread21 = float(np.abs(db(g21) - db(r21))[m].max())
+                spread11 = float(np.abs(db(g11) - db(r11))[m].max())
+            else:
+                ref[orient] = (place, g21, g11)
+            d21 = (db(t21) - db(g21))[m]
+            d11 = (db(t11) - db(g11))[m]
+            i21, i11 = np.argmax(np.abs(d21)), np.argmax(np.abs(d11))
+            pg, _ = narrow_peak(f, g21)
+            pt, fpt = narrow_peak(f, t21)
+            table.append((tag, cfg, place, float(db(g21)[m].max()), float(d21[i21]), float(f[m][i21] / 1e6),
+                          spread21, float(d11[i11]), float(f[m][i11] / 1e6), spread11, pg, pt, fpt))
+        for ax in axs[r]:
+            ax.axvspan(0.699, 0.960, color='0.93', zorder=0)
+            ax.axhline(0, color='k', lw=0.5)
+        axs[r, 0].set_ylabel('|S21| (dB)')
+        axs[r, 0].set_title('%s, %s ohm per gap' % (titles.get(cfg, cfg), tag[len('xloopR'):]),
+                            fontsize=9, loc='left')
+        axs[r, 0].set_ylim(-110, 0)
+        axs[r, 1].set_ylabel('d|S21| (dB)')
+        axs[r, 2].set_ylabel('d|S11| (dB)')
+        axs[r, 0].legend(fontsize=6, frameon=False, ncol=2)
+        axs[r, 1].legend(fontsize=6, frameon=False, ncol=2)
+    fig.suptitle('Left: |S21| loop to loop, tampered (solid) and genuine (dashed).   Middle: S21, tampered - '
+                 'genuine at the same placement (solid), genuine moved (dashed).   Right: S11 of the driven loop, '
+                 'same comparison.', fontsize=9)
+    for ax in axs[-1]:
+        ax.set_xlabel('GHz')
+        ax.set_xlim(0.3, 2.0)
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
+    fig.savefig(os.path.join(IMG, 'sim_xloop.png'), dpi=130)
+    plt.close(fig)
+    print('dS21 / dS11: tampered - genuine at the same placement, max in 650-1300 MHz; moved: genuine '
+          'moved 28 mm vs. centred.\nnarrow peak: |S21| minus its +-80 MHz running median, 650-1050 MHz.')
+    print('%-8s %-4s %-14s %8s %8s %6s %7s %8s %6s %7s %10s %10s %6s' % (
+        'damping', 'cfg', 'placement', 'gen S21', 'dS21', 'MHz', 'moved', 'dS11', 'MHz', 'moved',
+        'peak gen', 'peak tamp', 'MHz'))
+    for t in table:
+        print('%-8s %-4s %-14s %8.1f %8.2f %6.0f %7.2f %8.2f %6.0f %7.2f %10.1f %10.1f %6.0f' % t)
+
+
 if __name__ == '__main__':
     os.makedirs(IMG, exist_ok=True)
     {'electrostatic': electrostatic, 'rf': rf, 'fixtures': fixtures,
-     'fixtures-grand': lambda: fixtures('grand', 'sim_fixtures_grand.png')}[sys.argv[1]]()
+     'fixtures-grand': lambda: fixtures('grand', 'sim_fixtures_grand.png'), 'xloop': xloop}[sys.argv[1]]()

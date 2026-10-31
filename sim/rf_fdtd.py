@@ -128,6 +128,7 @@ class Sim:
                                                        ('z', (nx + 1, ny + 1, nz)))}
         self.lumped = []   # (comp, i, j, k, R, is_port, is_probe)
         self.inductors = []  # (comp, i, j, k, L)
+        self.capacitors = []  # (comp, i, j, k, C)
 
     # --- geometry helpers (snap to the grid) ---
     def _ci(self, a, lo, hi):
@@ -233,6 +234,12 @@ class Sim:
         self.pec[c][i, j, k] = False
         self.inductors.append((c, i, j, k, L))
 
+    def add_capacitor(self, edge, C):
+        """Lumped capacitor (farad) on one edge, e.g. the series capacitors of a segmented loop."""
+        c, i, j, k = edge
+        self.pec[c][i, j, k] = False
+        self.capacitors.append((c, i, j, k, C))
+
     # --- run ---
     def prepare(self):
         x, y, z = self.x, self.y, self.z
@@ -308,6 +315,17 @@ class Sim:
                 self.port = (c, i, j, k, dl, R, (dt / (e * R * A)) / (1 + a))
             if probe:
                 self.probes.append((c, i, j, k, dl))
+        # capacitor: (eps A + C dl) dE/dt = A curl H, i.e. the edge's permittivity grows by C dl / A
+        for c, i, j, k, Cf in self.capacitors:
+            if c == 'x':
+                dl, A = dx[i], dyd[j] * dzd[k]
+            elif c == 'y':
+                dl, A = dy[j], dxd[i] * dzd[k]
+            else:
+                dl, A = dz[k], dxd[i] * dyd[j]
+            e = avg(ep, c)[i, j, k] * EPS0 + Cf * dl / A
+            self.co['ca' + c][i, j, k] = 1.0
+            self.co['cb' + c][i, j, k] = dt / e
         self.coils = []
         for c, i, j, k, Lh in self.inductors:
             if c == 'x':
