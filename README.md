@@ -104,6 +104,13 @@ fixtures in simulation: the coil is too small to couple to a uniform field. The
 capacitive array catches it clearly through the missing battery foil
 (1.3-3.4 pF above placement error). So always run both tests.
 
+Two large crossed H-field loops (an induction-balance setup) were also
+simulated ([docs/fixtures.md](docs/fixtures.md#large-loops-crossed-and-coaxial-simulation-only)).
+Crossed vertical loops show the meander implant's 825-840 MHz resonance as a
+10-13 dB narrow peak at every placement, but only 57-70 dB below the drive
+level, which is hard for a NanoVNA. Wallet-sized coaxial loops miss that
+resonance entirely. For now the TEM cell remains the practical test.
+
 ## Board
 
 | Top | Bottom (sensing side) |

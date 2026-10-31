@@ -305,7 +305,8 @@ def xloop():
         _, s21 = read_s1p(p, 1)
         data[n] = (f, s11, s21)
     rows_ = sorted({'_'.join(n.split('_')[:2]) for n in data})
-    titles = {'xv': 'two vertical loops, crossed', 'hv': 'horizontal loop under + vertical loop'}
+    titles = {'xv': 'two vertical loops, crossed', 'hv': 'horizontal loop under + vertical loop',
+              'cx': 'two wallet-sized loops, coaxial (wallet in a jig)'}
     fig, axs = plt.subplots(len(rows_), 3, figsize=(14, 2.8 * len(rows_)), sharex=True, squeeze=False)
     band = (650e6, 1300e6)
     table = []
@@ -356,8 +357,7 @@ def xloop():
         axs[r, 0].set_ylim(-110, 0)
         axs[r, 1].set_ylabel('d|S21| (dB)')
         axs[r, 2].set_ylabel('d|S11| (dB)')
-        axs[r, 0].legend(fontsize=6, frameon=False, ncol=2)
-        axs[r, 1].legend(fontsize=6, frameon=False, ncol=2)
+        axs[r, 0].legend(fontsize=6, frameon=False, ncol=2, loc='upper left')
     fig.suptitle('Left: |S21| loop to loop, tampered (solid) and genuine (dashed).   Middle: S21, tampered - '
                  'genuine at the same placement (solid), genuine moved (dashed).   Right: S11 of the driven loop, '
                  'same comparison.', fontsize=9)

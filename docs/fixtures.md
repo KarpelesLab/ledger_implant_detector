@@ -356,3 +356,81 @@ for antennas spread along the wallet, like the meander/FPC type. A clean result
 on a fixture does **not** rule out a compact coil antenna. Always run the
 capacitive scan as well.
 
+
+## Large loops: crossed and coaxial (simulation only)
+
+Suggested as an alternative: two large H-field loops at 90 degrees. Port 1
+drives one loop and port 2 is the other. The loops are orthogonal, so empty
+they barely couple, and S21 sits on a null. An antenna that couples to both
+should show as a narrow S21 peak over that null, like an induction-balance metal
+detector. The opposite option was also suggested: two wallet-sized loops on the
+same axis, under and over the wallet, measuring the strong S21 straight
+through, with a jig fitting the wallet so that it cannot move.
+
+`sim/xloop_fdtd.py` models three setups, with the meander implant and the same
+genuine/tampered wallets as above:
+
+| setup | loops | field on the wallet | placements |
+|---|---|---|---|
+| `xv` crossed | two vertical loops, 110 and 120 mm square, crossing above and below the wallet | H along x and along y | as above: 0 / 90 deg, centred and 28 mm off |
+| `hv` crossed | 110 mm horizontal loop 5 mm under the wallet + 116 mm vertical loop | H vertical and along y | as above |
+| `cx` coaxial | two 82 x 30 mm loops, 5 mm under and 3 mm over the wallet | H vertical, strong through path | jig: centred, slipped 2 x 1 mm, turned end for end |
+
+A 110 mm loop is more than a wavelength around at 1 GHz, so each loop is cut
+into 35-40 mm segments by gaps. Each gap holds a series capacitor (0.8 pF; 1.4
+pF for `cx`) that tunes the loops to ~900 MHz, and a damping resistor (10 or
+50 ohm). The ports sit on the other loop's mirror plane, so the empty crossed
+loops cancel by symmetry: -80 dB for `xv`, -57 dB for `hv`. The solver gained a
+lumped capacitor for this. Figure and table: `python sim/report.py xloop`.
+
+![crossed and coaxial loops](img/sim_xloop.png)
+
+Results, 10 ohm per gap. The 50 ohm loops were worse in every setup.
+
+| setup | tampered vs. genuine, same placement | genuine moved |
+|---|---|---|
+| `xv` crossed | **narrow S21 peak at 825-840 MHz at all 4 placements**, 10-13 dB above the curve's own running median; genuine 0-1.5 dB off centre, 6 dB centred. S11 of the driven loop: -1.2..-1.8 dB at ~1150 MHz at 0 deg only | genuine S21 level rises 43-48 dB when moved 28 mm |
+| `hv` crossed | peak at 840 MHz only when off centre (13 dB); centred 0 / 90 deg: < 4 dB. S11: -1.6..-1.8 dB at ~1160 MHz at 90 deg only | 10-12 dB |
+| `cx` coaxial | **nothing in 700-960 MHz** (< 0.6 dB, broad band-edge slopes); a +2.4 / -2.5 dB swing over ~100 MHz at 1.08-1.19 GHz, centred and slipped; only -0.8 dB turned end for end | 0.55 dB for a 2 mm slip |
+
+### What this says
+
+1. **The crossed vertical loops (`xv`) see the antenna's own resonance at every
+   placement and in both orientations.** That is the 820-860 MHz band of the
+   10 mm loop hump and of the slot line, which the TEM cell barely shows. The
+   contrast is large, but the level is low: the tampered peak is at **-57 to
+   -70 dB** absolute, about where a NanoVNA's dynamic range ends. With 50 ohm
+   damping it falls to -67..-79 dB.
+2. **The null is not a stable baseline in practice.** A genuine wallet 28 mm off
+   centre breaks the symmetry and raises S21 by ~45 dB, to -50..-60 dB. So the
+   test must look for a *narrow* peak, not a level. A real hand-built pair will
+   also null far less deeply than the model's -80 dB. Subtracting the empty
+   fixture's complex S21 recovers some of that, but the absolute level remains
+   the problem.
+3. **The loops are poorly matched (~200-550 ohm at the port).** A matching
+   transformer on each loop should raise the signal. That has not been
+   simulated.
+4. **A field straight through the flat antenna barely excites it.** Neither
+   `cx` nor the horizontal loop of `hv` (centred) sees the 835 MHz resonance,
+   just as the TEM cell with the wallet on edge saw nothing. The meander couples
+   to fields lying in its plane. What `cx` and `hv` do see is the ~1.2 GHz
+   resonance of the implant's coax and modem board, the one the TEM cell
+   measured at 1171 MHz. In `cx` it is a +-2.5 dB swing over ~100 MHz, but it
+   falls below 1 dB when the wallet is turned end for end, so it depends on
+   which end of the jig the antenna sits.
+5. **Orientation:** the crossed loops are blind where an antenna lines up with
+   only one loop. In `xv` both 0 and 90 deg worked, through the antenna's
+   coupling to both loops. 45 deg cannot be modelled on this grid. Measure two
+   orientations anyway.
+
+**Compared with the TEM cell:** the TEM cell gives a ~1 dB notch on a 0 dB
+through signal. A NanoVNA measures that easily, and it was measured on the real
+implant at every placement. The crossed loops give a 10+ dB contrast on a
+signal 60-70 dB down. That is a better *contrast* but a harder *measurement*.
+Remember also that on the real unit the slot line gave a third of its
+simulated depth. Crossed loops would be worth building as a second,
+independent test of the antenna's own resonance, with matched loops and a VNA
+with more dynamic range than the NanoVNA-F V2. They do not replace the TEM
+cell. The spiral implant was not run in the loop fixtures. It is a 6 mm coil
+and would probably couple just as weakly as it does to the slot line and TEM
+cell.
