@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "lid")(type "KiCad")(uri "${KIPRJMOD}/../lib/lid.kicad_sym")(options "")(descr "Ledger implant detector project library"))
+)

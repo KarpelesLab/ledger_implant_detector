@@ -111,6 +111,10 @@ Crossed vertical loops show the meander implant's 825-840 MHz resonance as a
 level, which is hard for a NanoVNA. Wallet-sized coaxial loops miss that
 resonance entirely. For now the TEM cell remains the practical test.
 
+The next step is an integrated TEM cell with its own scalar sweep, an LCD, green and
+red LEDs and USB-C: see [docs/rev02_integrated.md](docs/rev02_integrated.md). The board is generated in
+`hardware/integrated/` but has not been built, and it has no firmware yet.
+
 ## Board
 
 | Top | Bottom (sensing side) |

@@ -100,9 +100,45 @@ def loop_symbol():
                          'lid:NearField_Loop_D8mm', g, pins, in_bom=False)
 
 
+def ic_symbol(name, ref, desc, fp, left, right):
+    """Plain box; left/right = [(pin number, name), ...] top to bottom. All passive: the datasheet pin table is the source."""
+    n = max(len(left), len(right))
+    w = 12.7
+    top = ((n + 1) // 2 + 1) * 2.54
+    g = [[Sym('rectangle'), [Sym('start'), -w, top], [Sym('end'), w, top - 2.54 * (n + 1)], stroke(), fill('background')]]
+    pins = []
+    for side, x, ang in ((left, -w - 2.54, 0), (right, w + 2.54, 180)):
+        for i, (num, label) in enumerate(side):
+            pins.append(pin(num, label, x, top - 2.54 * (i + 1), ang))
+    s = simple_symbol(name, ref, desc, fp, g, pins, hide_pin_names=False, hide_pin_numbers=False)
+    return s
+
+
+def adf4351_symbol():
+    """Pin table: ADF4351 datasheet Rev. A, Table 5 (32-lead LFCSP, CP-32-7)."""
+    return ic_symbol('ADF4351', 'U', 'Wideband PLL synthesizer with VCO, 35 MHz - 4.4 GHz, LFCSP-32',
+                     'Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm',
+                     [('1', 'CLK'), ('2', 'DATA'), ('3', 'LE'), ('4', 'CE'), ('26', 'PDBRF'), ('25', 'LD'), ('30', 'MUXOUT'),
+                      ('29', 'REFIN'), ('5', 'SW'), ('7', 'CPOUT'), ('20', 'VTUNE'), ('22', 'RSET'), ('19', 'TEMP'),
+                      ('23', 'VCOM'), ('24', 'VREF')],
+                     [('6', 'VP'), ('10', 'AVDD'), ('16', 'VVCO'), ('17', 'VVCO'), ('28', 'DVDD'), ('32', 'SDVDD'),
+                      ('12', 'RFOUTA+'), ('13', 'RFOUTA-'), ('14', 'RFOUTB+'), ('15', 'RFOUTB-'), ('8', 'CPGND'), ('9', 'AGND'),
+                      ('11', 'AGNDVCO'), ('18', 'AGNDVCO'), ('21', 'AGNDVCO'), ('27', 'DGND'), ('31', 'SDGND'), ('33', 'EP')])
+
+
+def ad8318_symbol():
+    """Pin table: AD8318 datasheet Rev. B, Table 3 (16-lead LFCSP, CP-16-4)."""
+    return ic_symbol('AD8318', 'U', 'Logarithmic detector/controller, 1 MHz - 8 GHz, 70 dB, -25 mV/dB, LFCSP-16',
+                     'Package_CSP:Analog_LFCSP-16-1EP_4x4mm_P0.65mm_EP2.35x2.35mm',
+                     [('14', 'INHI'), ('15', 'INLO'), ('16', 'ENBL'), ('10', 'TADJ'), ('5', 'CLPF'), ('13', 'TEMP')],
+                     [('3', 'VPSI'), ('4', 'VPSI'), ('9', 'VPSO'), ('6', 'VOUT'), ('7', 'VSET'), ('8', 'CMOP'), ('1', 'CMIP'),
+                      ('2', 'CMIP'), ('11', 'CMIP'), ('12', 'CMIP'), ('17', 'EP')])
+
+
 def write_symbols():
     lib = [Sym('kicad_symbol_lib'), [Sym('version'), 20251024], [Sym('generator'), 'lid_gen'],
-           [Sym('generator_version'), '10.0'], fdc2214(), electrode_symbol(), loop_symbol()]
+           [Sym('generator_version'), '10.0'], fdc2214(), electrode_symbol(), loop_symbol(),
+           adf4351_symbol(), ad8318_symbol()]
     with open(os.path.join(LIB, 'lid.kicad_sym'), 'w') as f:
         f.write(sexpr.dump(lib) + '\n')
 
