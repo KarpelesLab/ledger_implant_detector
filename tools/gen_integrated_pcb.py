@@ -874,8 +874,8 @@ def jlc_files(fab):
 
 
 # JLC's footprint library uses other zero orientations and origins than KiCad for these (checked in its preview)
-JLC_ROT = {'U2': 90, 'U3': 90, 'U4': 90, 'U5': 90, 'J5': 90, 'Y1': 180}
-JLC_CENTRE = {'J5'}          # placed by the centre of its pads, not the footprint origin
+JLC_ROT = {'U2': 90, 'U3': 90, 'U4': 90, 'U5': 90, 'J5': 90, 'Y1': 180, 'D1': 180}
+JLC_CENTRE = {'J5', 'SW1', 'D1', 'D2'}        # placed by the centre of its pads, not the footprint origin
 
 
 def jlc_cpl_fix(fab, pcb):
