@@ -3360,7 +3360,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Value" "52.3"
+		(property "Value" "49.9"
 			(at 0 -1.43 270)
 			(layer "B.Fab")
 			(uuid "797b1f49-8b4e-4a78-8469-4aa74498ed74")
@@ -8566,7 +8566,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 0 -1.43 270)
 			(layer "B.Fab")
 			(uuid "74c05153-17e8-4687-858f-77af1d242373")
@@ -8827,7 +8827,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 0 -1.43 270)
 			(layer "B.Fab")
 			(uuid "5385a969-3fbc-4fa5-a813-0562b2c98aae")
@@ -9473,7 +9473,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 0 -1.43 180)
 			(layer "B.Fab")
 			(uuid "f0997cd9-8646-47df-b409-3bc348707cab")
@@ -11905,7 +11905,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 0 -1.43 90)
 			(layer "B.Fab")
 			(uuid "dc2cd092-4fcd-4a05-811b-5196da6e27d5")
@@ -12100,7 +12100,7 @@
 				(justify mirror)
 			)
 		)
-		(property "MPN" "U.FL-R-SMT-1"
+		(property "MPN" "U.FL-R-SMT-1(80)"
 			(at 0 0 0)
 			(layer "B.Fab")
 			(hide yes)
@@ -12111,6 +12111,17 @@
 					(thickness 0.15)
 				)
 				(justify mirror)
+			)
+		)
+		(property "LCSC" "C88374"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "5384e0ba-7352-4c9b-b331-2aacf54fc90f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
 			)
 		)
 		(path "/c05a4416-4d09-5fcb-9a9d-16fd304364a4")
@@ -16271,7 +16282,7 @@
 				(justify mirror)
 			)
 		)
-		(property "MPN" "ASE-25.000MHZ-LC-T"
+		(property "MPN" "OT322525MJBA4SL"
 			(at 0 0 180)
 			(layer "B.Fab")
 			(hide yes)
@@ -16282,6 +16293,28 @@
 					(thickness 0.15)
 				)
 				(justify mirror)
+			)
+		)
+		(property "Manufacturer" "YXC"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "5800d1fa-321a-4057-a19f-4b592407a695")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C669088"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "66e072f0-79f8-4f1e-aac0-4b443c6c2af2")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
 			)
 		)
 		(path "/076f0024-9450-5044-b055-370ce79abf41")
@@ -17015,7 +17048,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 0 -1.43 270)
 			(layer "B.Fab")
 			(uuid "97462ab1-8b69-4e2b-9248-461fd15bc5cc")
@@ -18100,7 +18133,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 0 -1.43 270)
 			(layer "B.Fab")
 			(uuid "fd34c295-24b8-4436-bba1-b71f68f90975")

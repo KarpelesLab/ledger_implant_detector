@@ -830,6 +830,78 @@ def main():
     print('wrote', path)
 
 
+def jlc_files(fab):
+    """JLC assembles everything except the Pico and the LCD header, which are hand-soldered (see ORDER.md).
+    Its BOM check also needs every designator written out: kicad-cli groups them as C3-C6."""
+    hand = {'J3', 'U1'}
+
+    def expand(refs):
+        out = []
+        for part in refs.split(','):
+            m = re.fullmatch(r'([A-Z]+)(\d+)-[A-Z]*(\d+)', part.strip())
+            if m:
+                out += ['%s%d' % (m.group(1), n) for n in range(int(m.group(2)), int(m.group(3)) + 1)]
+            else:
+                out.append(part.strip())
+        return out
+    # exact LCSC parts, so JLC has nothing to ask about. Checked against its listings, see docs/rev02_integrated.md
+    parts = {'0': ('0603WAF0000T5E', 'C21189'), '100': ('0603WAF1000T5E', 'C22775'), '68': ('0603WAF680JT5E', 'C27592'),
+             '49.9': ('0603WAF499JT5E', 'C23185'), '5.1k': ('0603WAF5101T5E', 'C23186'), '510': ('0603WAF5100T5E', 'C23193'),
+             '330': ('RC0603FR-07330RL', 'C105881'), '33': ('0603WAF330JT5E', 'C23140'), '150': ('0603WAF1500T5E', 'C22808'),
+             '39': ('0603WAF390JT5E', 'C23154'), '499': ('RC0603FR-07499RL', 'C137714'), '1k': ('0603WAF1001T5E', 'C21190'),
+             '100k': ('0603WAF1003T5E', 'C25803'), '4.7k': ('0603WAF4701T5E', 'C23162'), '10k': ('0603WAF1002T5E', 'C25804'),
+             '47': ('0603WAF470JT5E', 'C23182'), '100p': ('CC0603JRNPO0BN101', 'C107033'), '220p': ('GCM1885C2A221JA16D', 'C388907'),
+             '680p': ('CC0603JRNPO9BN681', 'C107055'), '1n': ('CL10C102JB8NNNC', 'C163508'), '1.5n': ('CGA0603C0G152J500JT', 'C36911403'),
+             '10n': ('0603B103K500NT', 'C57112'), '15n': ('CC0603KRX7R9BB153', 'C107076'), '100n': ('CC0603KRX7R9BB104', 'C14663'),
+             '4.7u': ('CL21A475KBQNNNE', 'C98192'), '10u': ('CL21A106KAYNNNE', 'C15850'), '600R': ('GZ1608D601TF', 'C1002'),
+             'green': ('333-2SYGD/S530-E2-L', 'C99697'), 'red': ('333-2SURD/S530-A3', 'C87271'), 'Start': ('TS665CJ', 'C393938'),
+             'ADF4351BCPZ': ('ADF4351BCPZ', 'C654681'), 'AD8318ACPZ-REEL7': ('AD8318ACPZ-REEL7', 'C578694'),
+             'ADS1115IDGSR': ('ADS1115IDGSR', 'C37593'), 'AP2112K-3.3TRG1': ('AP2112K-3.3TRG1', 'C51118'),
+             'OT322525MJBA4SL': ('OT322525MJBA4SL', 'C669088'), 'U.FL-R-SMT-1(80)': ('U.FL-R-SMT-1(80)', 'C88374')}
+    for name in ('bom_jlc.csv', 'cpl_jlc.csv'):
+        path = os.path.join(fab, name)
+        rows = list(csv.DictReader(open(path)))
+        with open(path, 'w', newline='') as f:
+            w = csv.DictWriter(f, fieldnames=rows[0].keys())
+            w.writeheader()
+            for r in rows:
+                refs = [x for x in expand(r['Designator']) if x not in hand]
+                if refs:
+                    r['Designator'] = ','.join(refs)
+                    if 'Comment' in r:
+                        r['Comment'], r['LCSC Part #'] = parts[r['Comment']]
+                    w.writerow(r)
+
+
+# JLC's footprint library uses other zero orientations and origins than KiCad for these (checked in its preview)
+JLC_ROT = {'U2': 90, 'U3': 90, 'U4': 90, 'U5': 90, 'J5': 90, 'Y1': 180}
+JLC_CENTRE = {'J5'}          # placed by the centre of its pads, not the footprint origin
+
+
+def jlc_cpl_fix(fab, pcb):
+    b = pcbnew.LoadBoard(pcb)
+    fps = {f.GetReference(): f for f in b.GetFootprints()}
+    path = os.path.join(fab, 'cpl_jlc.csv')
+    rows = list(csv.DictReader(open(path)))
+    for r in rows:
+        ref = r['Designator']
+        if ref in JLC_ROT:
+            r['Rotation'] = '%.6f' % ((float(r['Rotation']) + JLC_ROT[ref]) % 360)
+        if ref in JLC_CENTRE:
+            fp = fps[ref]
+            boxes = [pd.GetBoundingBox() for pd in fp.Pads()]
+            cx = (min(x.GetLeft() for x in boxes) + max(x.GetRight() for x in boxes)) / 2
+            cy = (min(x.GetTop() for x in boxes) + max(x.GetBottom() for x in boxes)) / 2
+            o = fp.GetPosition()
+            # the placement file has y up from the drill origin
+            r['Mid X'] = '%.6fmm' % (float(r['Mid X'][:-2]) + (cx - o.x) / 1e6)
+            r['Mid Y'] = '%.6fmm' % (float(r['Mid Y'][:-2]) - (cy - o.y) / 1e6)
+    with open(path, 'w', newline='') as f:
+        w = csv.DictWriter(f, fieldnames=rows[0].keys())
+        w.writeheader()
+        w.writerows(rows)
+
+
 def outputs():
     """Fab package and renders, using the same steps as the detector board."""
     import make_outputs as mo
@@ -839,19 +911,8 @@ def outputs():
     mo.bom()
     mo.cpl()
     mo.schematic_pdf()
-    # JLC assembles the SMD parts on the underside only; the rest is hand-soldered (see ORDER.md)
-    hand = {'D1', 'D2', 'J3', 'SW1', 'U1'}
-    for name, key in (('bom_jlc.csv', 'Designator'), ('cpl_jlc.csv', 'Designator')):
-        path = os.path.join(mo.FAB, name)
-        rows = list(csv.DictReader(open(path)))
-        with open(path, 'w', newline='') as f:
-            w = csv.DictWriter(f, fieldnames=rows[0].keys())
-            w.writeheader()
-            for r in rows:
-                refs = [x for x in r[key].split(',') if x not in hand]
-                if refs:
-                    r[key] = ','.join(refs)
-                    w.writerow(r)
+    jlc_files(mo.FAB)
+    jlc_cpl_fix(mo.FAB, mo.PCB)
     mo.cli('pcb', 'drc', '--schematic-parity', '--severity-error', '--severity-warning', '-o', os.path.join(mo.FAB, 'drc_report.txt'), mo.PCB)
     mo.cli('sch', 'erc', '--severity-error', '--severity-warning', '-o', os.path.join(mo.FAB, 'erc_report.txt'), mo.SCH)
     img = os.path.join(ROOT, 'docs', 'img')

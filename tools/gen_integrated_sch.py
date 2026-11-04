@@ -58,17 +58,17 @@ def gen():
     R('R3', '68', 30, 100, 'TX_B', 'TX_C')
     R('R4', '100', 30, 107, 'TX_C', 'GND')
     C('C3', '100p', 30, 114, 'TX_C', 'RFA_P', fields={'Dielectric': 'C0G'})
-    R('R5', '51', 60, 65, 'RFA_P', '+3V3A')
-    R('R6', '51', 60, 72, 'RFA_N', '+3V3A')
+    R('R5', '49.9', 60, 65, 'RFA_P', '+3V3A')
+    R('R6', '49.9', 60, 72, 'RFA_N', '+3V3A')
     C('C4', '100p', 60, 79, 'RFA_N', 'RFA_T', fields={'Dielectric': 'C0G'})
-    R('R7', '51', 60, 86, 'RFA_T', 'GND')
-    R('R8', '51', 60, 93, 'RFB_P', '+3V3A')
-    R('R9', '51', 60, 100, 'RFB_N', '+3V3A')
+    R('R7', '49.9', 60, 86, 'RFA_T', 'GND')
+    R('R8', '49.9', 60, 93, 'RFB_P', '+3V3A')
+    R('R9', '49.9', 60, 100, 'RFB_N', '+3V3A')
     C('C5', '100p', 60, 107, 'RFB_P', 'RFB_OUT', fields={'Dielectric': 'C0G'})
     C('C6', '100p', 60, 114, 'RFB_N', 'RFB_T', fields={'Dielectric': 'C0G'})
-    R('R10', '51', 60, 121, 'RFB_T', 'GND')
+    R('R10', '49.9', 60, 121, 'RFB_T', 'GND')
     sch.add('J5', 'Connector:Conn_Coaxial', 'U.FL', 95, 100, {'1': 'RFB_OUT', '2': 'GND'},
-            footprint='Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical', fields={'MPN': 'U.FL-R-SMT-1'})
+            footprint='Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical', fields={'MPN': 'U.FL-R-SMT-1(80)', 'LCSC': 'C88374'})
 
     # ---- synthesizer ----
     sch.text('ADF4351 synthesizer. Phase noise does not matter here: only amplitude is measured', 110, 15, 2)
@@ -93,7 +93,7 @@ def gen():
     sch.add('FB2', 'Device:FerriteBead', '600R', 205, 110, {'1': '+3V3A', '2': 'VVCO'}, rot=90, footprint=L0603)
     sch.add('FB3', 'Device:FerriteBead', '600R', 205, 125, {'1': '+3V3A', '2': 'VP'}, rot=90, footprint=L0603)
     sch.add('Y1', 'Oscillator:ASE-xxxMHz', '25 MHz', 225, 40, {'1': '+3V3A', '2': 'GND', '3': 'REF_OUT', '4': '+3V3A'},
-            footprint='Oscillator:Oscillator_SMD_Abracon_ASE-4Pin_3.2x2.5mm', fields={'MPN': 'ASE-25.000MHZ-LC-T'})
+            footprint='Oscillator:Oscillator_SMD_Abracon_ASE-4Pin_3.2x2.5mm', fields={'MPN': 'OT322525MJBA4SL', 'Manufacturer': 'YXC', 'LCSC': 'C669088'})
     R('R14', '33', 225, 65, 'REF_OUT', 'SYN_REF')
     C('C20', '100n', 225, 76, '+3V3A', 'GND')
 
@@ -103,7 +103,7 @@ def gen():
     R('R21', '150', 275, 37, 'RX_A', 'GND')
     R('R22', '39', 275, 44, 'RX_A', 'RX_B')
     R('R23', '150', 275, 51, 'RX_B', 'GND')
-    R('R24', '52.3', 275, 58, 'RX_B', 'GND')
+    R('R24', '49.9', 275, 58, 'RX_B', 'GND')
     C('C21', '1n', 275, 65, 'RX_B', 'DET_HI', fields={'Dielectric': 'C0G'})
     C('C22', '1n', 275, 72, 'DET_LO', 'GND', fields={'Dielectric': 'C0G'})
     sch.add('U3', 'lid:AD8318', 'AD8318', 330, 45, {

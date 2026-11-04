@@ -6690,7 +6690,7 @@
 				)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 66.04 68.326 90)
 			(effects
 				(font
@@ -6799,7 +6799,7 @@
 				)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 66.04 78.486 90)
 			(effects
 				(font
@@ -7026,7 +7026,7 @@
 				)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 66.04 101.346 90)
 			(effects
 				(font
@@ -7190,7 +7190,7 @@
 				)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 66.04 111.506 90)
 			(effects
 				(font
@@ -7299,7 +7299,7 @@
 				)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 66.04 121.666 90)
 			(effects
 				(font
@@ -7644,7 +7644,7 @@
 				)
 			)
 		)
-		(property "Value" "51"
+		(property "Value" "49.9"
 			(at 66.04 154.686 90)
 			(effects
 				(font
@@ -7843,7 +7843,16 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "U.FL-R-SMT-1"
+		(property "MPN" "U.FL-R-SMT-1(80)"
+			(at 93.98 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C88374"
 			(at 93.98 99.06 0)
 			(effects
 				(font
@@ -12080,7 +12089,25 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "ASE-25.000MHZ-LC-T"
+		(property "MPN" "OT322525MJBA4SL"
+			(at 226.06 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "YXC"
+			(at 226.06 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C669088"
 			(at 226.06 40.64 0)
 			(effects
 				(font
@@ -13096,7 +13123,7 @@
 				)
 			)
 		)
-		(property "Value" "52.3"
+		(property "Value" "49.9"
 			(at 279.4 75.946 90)
 			(effects
 				(font

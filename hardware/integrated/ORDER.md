@@ -11,17 +11,16 @@ Upload `fab/integrated_gerbers.zip`. It is 200 x 216 mm.
 - 1 oz outer copper, any mask colour, ENIG or lead-free HASL.
 - The bare landing lines on top and the bare ground frames underneath are intentional.
 
-## Assembly (underside only)
+## Assembly
 
-Choose assembly on the **bottom** side and upload `fab/bom_jlc.csv` and `fab/cpl_jlc.csv`. They
-contain only the underside SMD parts. Then:
+Choose assembly on **both sides** and upload `fab/bom_jlc.csv` and `fab/cpl_jlc.csv`. Every line has
+an exact LCSC part. JLC places the underside SMD parts and solders the LEDs and button on top.
 
-- **Check the rotations in the preview**, especially U2, U3, U4, U5 and Y1.
-- No LCSC numbers are filled in, so match parts by MPN or value. Check stock first for the
-  **ADF4351BCPZ and AD8318ACPZ-REEL7**. If JLC can't source them, buy them elsewhere and consign
-  them. These two are leadless and shouldn't be hand-soldered without hot air.
-- `ASE-25.000MHZ-LC-T` for Y1 is a suggestion: any 25 MHz 3.3 V CMOS oscillator in a 3.2 x 2.5 mm
-  package with the same pinout fits.
+- **Check stock first for U3 (AD8318ACPZ-REEL7, C578694) and U2 (ADF4351BCPZ, C654681).** If either is
+  short, pre-order it through JLC or consign it. They are leadless and shouldn't be hand-soldered
+  without hot air.
+- **Check in the preview:** the rotation of U2, U3, U4, U5 and Y1, pin 1 of each, and the polarity of
+  D1 and D2 (the square pad is the cathode).
 - Parts marked DNP in the schematic stay empty: C1, C2, C13, R31, J1, J2, J4.
 
 ## Hand-soldered by you
@@ -29,8 +28,6 @@ contain only the underside SMD parts. Then:
 | part | what | side |
 |---|---|---|
 | U1 | Raspberry Pi Pico 2 (SC1631), on 2 x 20 pin headers, micro-USB towards the board edge | underside |
-| D1, D2 | 5 mm LEDs, green and red | top |
-| SW1 | 6 mm tactile button | top |
 | J3 | 8-pin 2.54 mm header, for the LCD | top |
 | LCD | 2 inch ST7789 SPI module. **Check its pin order against J3 before ordering**: GND, VCC, SCK, SDA, RES, DC, CS, BL. They vary by seller, and a different order needs jumper wires | top |
 
