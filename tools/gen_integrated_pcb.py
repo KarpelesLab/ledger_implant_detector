@@ -468,9 +468,11 @@ class Free:
                 w = t.GetWidth()
             self.segs.append((a, c, w / 2e6))
 
-    def ok(self, x, y, r, net=None):
+    def ok(self, x, y, r, net=None, on_pads=True):
+        """on_pads=False keeps off every pad, ground ones too: a via in a pad wicks its solder away."""
         for a, b, c, d, gnd, name in self.boxes:
-            if (not gnd or net not in (None, 'GND')) and name != net and x + r > a and x - r < c and y + r > b and y - r < d:
+            if (not on_pads or not gnd or net not in (None, 'GND')) and (not on_pads or name != net) \
+                    and x + r > a and x - r < c and y + r > b and y - r < d:
                 return False
         for (ax, ay), (cx, cy), w in self.segs:
             dx, dy = cx - ax, cy - ay
@@ -543,7 +545,8 @@ def stitch(bd, free):
         y = -Y1 + 5
         while y < Y1 - 3:
             inside = abs(x) < 9.5 and abs(y) > LAND0 - 8
-            if not inside and free.ok(x, y, 0.65):
+            # off the pads: one on U3 pins 1-2 left them short of solder on the first JLC run
+            if not inside and free.ok(x, y, 0.65, on_pads=False):
                 bd.via(x, y, 'GND')
             y += 10.0
         x += 10.0
