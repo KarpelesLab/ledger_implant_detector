@@ -267,9 +267,10 @@ steps are in [hardware/integrated/ORDER.md](../hardware/integrated/ORDER.md).
 
 Check status (`hardware/integrated/fab/*_report.txt`): DRC 0 errors, 0 unconnected, schematic
 parity OK. What remains are silkscreen warnings and the landing lines' open ends, which are
-intentional. ERC shows only 3 warnings, from stock symbols that call ground pins outputs. These
-checks prove the layout matches the schematic, not that the circuit works. **Nothing has been
-built, there is no firmware yet, and the RF path has not been simulated or measured.**
+intentional. ERC shows 1 error: the Pico symbol's GND and AGND pins are both power outputs, and
+they are meant to be joined. These checks prove the layout matches the schematic, not that the
+circuit works. Rev 0.2 has been built and its blocks work with `firmware/bringup`; rev 0.3 has
+not been built.
 
 The router isn't deterministic, so regenerating gives a different layout, and it can leave a
 few connections open. Run a few attempts with `LID_PCB_OUT` set to different paths and keep a

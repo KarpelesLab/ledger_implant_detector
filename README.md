@@ -1,288 +1,165 @@
 # Ledger Implant Detector
 
-> **⚠️ STATUS: CONCEPT — NOT YET BUILT OR VALIDATED (rev 0.1)**
+> **⚠️ STATUS: PROTOTYPE, NOT VALIDATED**
 >
-> This hardware has **not been fabricated or tested yet**. The schematic,
-> layout and detection method are a first-pass concept and will almost
-> certainly need errata. Do not rely on this device to declare a wallet
-> "clean" until the design has been built, characterised against known-good
-> and known-tampered devices, and this banner has been removed.
+> Rev 0.2 of the integrated board has been built (5 boards, 2026-11) and its blocks work, but it
+> has a ~12 dB notch around 1.4 GHz that has to be fixed before it can run the detection rule.
+> Rev 0.3 fixes the most likely cause and is generated but not built. The detection rule itself
+> rests on **one genuine and one tampered Nano X**. Do not rely on this device to declare a wallet
+> "clean" until it has been characterised on many more units and this banner has been removed.
 
-![3D view, top](docs/img/render_iso.png)
+| top: the cell | underside: the electronics |
+|---|---|
+| ![top](docs/img/integrated_top.png) | ![underside](docs/img/integrated_bottom.png) |
 
-A small hand-held tool for spotting **extra conductive structures hidden inside
-the plastic shell of a hardware wallet** (e.g. a Ledger). The target threat is
-a supply-chain implant that adds a cellular (LTE) modem to the device: such
-implants need a comparatively large antenna, i.e. a sizeable area of copper
-that is not present in a genuine unit.
+A bench box for spotting **implanted antennas inside hardware wallets** (e.g. a Ledger). The target
+threat is a supply-chain implant that adds a cellular (LTE) modem to the device: its antenna is a
+resonant structure that a genuine unit doesn't have.
 
-Everything is on **one board**, powered and programmed over a single USB-C
-port. No programmer or debug probe is needed (see
-[Programming](#programming-no-tools-needed)).
+You slide the wallet into an open **TEM cell**, press a button, and read a screen and a green or red
+LED. There's no VNA, no cables and no positioning skill involved. It is powered and updated over USB.
 
 ## How it detects
 
-The tool combines two complementary methods:
+A TEM cell is a stripline big enough to put a wallet in: a flat metal plate (the septum) held 20 mm
+above a ground plane, with tapered ramps at each end. It sets up a fairly uniform field over an
+80 x 80 mm test area, so the result hardly depends on where the wallet lies.
 
-### 1. Capacitive electrode array (primary)
+The board sweeps a signal through the cell and measures how much comes out the other side (|S21|).
+An implant antenna tuned to an LTE band absorbs energy at its resonance, which shows up as a narrow
+notch in the sweep. Placement, the battery and the wallet's own electronics only change the sweep
+broadly.
 
-Eight 14 × 14 mm copper electrodes on the underside of the head are read by two
-TI **FDC2214** 28-bit capacitance-to-digital converters (LC-resonant, EMI
-tolerant). Any conductor close to a plate (an antenna trace, a ground plane, a
-battery…) increases that plate's capacitance and lowers its resonance
-frequency, which the FDC2214 measures with very high resolution.
+**The rule:** wallet sweep minus empty-cell sweep, minus a 200 MHz running median, then look in
+1.0-1.45 GHz for a notch at least 0.45 dB deep and 10-60 MHz wide. If one is found, the user re-seats
+the wallet and the box sweeps again; two notches within 15 MHz give red. No per-model reference
+wallet is needed, if this holds up on more units.
 
-The detector does **not** recognise an antenna by itself: a genuine wallet
-also contains copper (PCB, battery, display, Bluetooth antenna, NFC coil on
-newer models). The method is **differential**:
+On the NanoVNA captures of 2026-10-26 (`tools/tem_detect.py`, details in
+[docs/rev02_integrated.md](docs/rev02_integrated.md#why-a-magnitude-only-sweep-is-enough)):
 
-1. Lay a *known-genuine* unit of the same model on the head in a fixed
-   orientation (a 3D-printed jig is recommended) and record the 8-channel
-   signature (the "reference").
-2. Lay the unit under test in the same position and compare.
-3. A significant positive deviation localised to one or more electrodes means
-   "more conductor here than in the reference" → open the device / investigate.
-
-The array covers 65 × 34 mm, enough for a Nano S Plus / Nano X in a single
-placement; Stax / Flex need two or more positions.
-
-### 2. Near-field RF loop at the tip (secondary, needs a VNA)
-
-The nose of the board carries a printed 8 mm H-field loop, fed by a 50 Ω
-microstrip that runs back to an **edge SMA connector** next to the USB-C port.
-Plug in an inexpensive VNA (NanoVNA / LiteVNA), sweep S11 from roughly
-600 MHz to 3 GHz and hover the tip over the wallet. You are looking for
-**resonances in the LTE bands** that a genuine unit does not show.
-
-This is complementary to the capacitive method: capacitance tells you *where
-there is extra copper*, and the RF sweep hints at *whether that copper is tuned
-like an antenna*. Results are again comparative (reference unit vs. unit under
-test). The wallet's own ground plane, battery, Bluetooth antenna and NFC coil
-all produce responses of their own, and a hidden antenna's resonance shifts
-with its surroundings.
-
-A later revision is meant to integrate the RF sweep so no external VNA is
-needed. The measurements in [docs/rf_measurements.md](docs/rf_measurements.md)
-will decide whether a magnitude-only front end is enough or phase is needed.
-
-## Simulations
-
-[docs/simulation.md](docs/simulation.md) models the real antenna (from photos of
-a tampered unit) sandwiched between the shell and the Ledger's own battery.
-Summary so far: antenna copper that sticks out beyond the battery's outline is
-clearly detectable, above any plausible placement error. Copper lying entirely
-within the battery's outline (it is always glued between the shell and the
-battery) and electrically floating is not detectable capacitively.
-Placement (air gap) dominates the raw signal, so the wallet must be pressed flat
-and judged by the *shape* of the 8-channel signature. The RF loop over the
-antenna's feed area shows a narrow in-band absorption dip (~0.35 dB, at ~1.8 GHz
-in the model) that a plain-copper piece of the same outline does not. That
-feature tells an antenna apart from a battery or other metal, and is within
-reach of a scalar, VNA-less front end.
-
-The first NanoVNA session on a tampered Nano X
-([data/rf/2026-10-18/notes.md](data/rf/2026-10-18/notes.md)) found a clear S21
-hump at 820-850 MHz, but only with the probe right over the antenna's feed. To
-remove that position dependence there is now a **concept RF fixture kit**
-(slot line and open TEM cell, 80 × 80 mm test area, NanoVNA S11/S21), with
-JLCPCB files. See [docs/fixtures.md](docs/fixtures.md). In simulation, both
-fixtures see a narrow tampering notch at every wallet placement tested.
-
-**First fixture measurements (2026-10-26, one genuine and one tampered Nano X,
-[data/rf/2026-10-26/notes.md](data/rf/2026-10-26/notes.md)):** the TEM cell
-shows a ~1 dB, ~40 MHz wide notch at 1171 MHz on the tampered unit in all 12
-captures, at every placement and in both orientations. The simulation predicted
--1.2 dB at 1185 MHz. 18 of 19 genuine captures stay within 0.22 dB. One genuine
-capture showed a similar notch at ~1230 MHz that did not repeat, cause unknown.
-The slot line sees the antenna's 820-860 MHz resonance only weakly (~0.15 dB)
-and only at 0 deg. This is promising but not yet validation: it is one unit of
-each kind.
-
-A second, quite different implant (Joe Grand's tampered Nano X: a hand-wound
-~6 mm wire spiral antenna and a shortened battery) is **not** seen by the
-fixtures in simulation: the coil is too small to couple to a uniform field. The
-capacitive array catches it clearly through the missing battery foil
-(1.3-3.4 pF above placement error). So always run both tests.
-
-Two large crossed H-field loops (an induction-balance setup) were also
-simulated ([docs/fixtures.md](docs/fixtures.md#large-loops-crossed-and-coaxial-simulation-only)).
-Crossed vertical loops show the meander implant's 825-840 MHz resonance as a
-10-13 dB narrow peak at every placement, but only 57-70 dB below the drive
-level, which is hard for a NanoVNA. Wallet-sized coaxial loops miss that
-resonance entirely. For now the TEM cell remains the practical test.
-
-The next step is an integrated TEM cell with its own scalar sweep, an LCD, green and
-red LEDs and USB-C: see [docs/rev02_integrated.md](docs/rev02_integrated.md). The board is generated in
-`hardware/integrated/` but has not been built, and it has no firmware yet.
-
-## Board
-
-| Top | Bottom (sensing side) |
+| | result |
 |---|---|
-| ![top render](docs/img/render_top.png) | ![bottom render](docs/img/render_bottom.png) |
+| tampered Nano X, all placements and both orientations | 12 of 12 flagged, 0.79-1.02 dB at ~1171 MHz |
+| genuine Nano X | 13 of 14 clean (at most 0.24 dB); one outlier that didn't repeat |
+| re-seat and repeat | tampered 8 of 8 pairs, genuine 0 of 10 |
 
-![3D view, bottom](docs/img/render_iso_bottom.png)
+The implant antenna's own S11 confirms the feature: it resonates at 1156-1245 MHz depending on what
+surrounds it ([data/rf/2026-11-02/notes.md](data/rf/2026-11-02/notes.md)).
 
-### Electrode map
+The thresholds were chosen after looking at these captures, so they set a hardware target (a sweep of
+800-1600 MHz in 5 MHz steps, at most 0.05 dB of noise per point) rather than proving the rule.
 
-Bottom copper, **seen from below** (i.e. the face you put against the wallet):
+## What it will miss
 
-![electrode map](docs/img/electrodes.png)
+- **Compact coil antennas**, such as Joe Grand's tampered Nano X (a hand-wound ~6 mm spiral). It is
+  too small to couple to the cell's uniform field and isn't seen in simulation. The capacitive array of
+  [rev 0.1](docs/rev01_capacitive.md) caught it in simulation through the shortened battery, but that
+  array is not on the current board. **A green result does not rule this type out.**
+- **Implants built to dodge the rule**: a low-Q antenna, or a resonance outside the band.
+- **Anything unmeasured**: Stax, Nano S Plus, a genuine Flex.
 
-| Electrode | Converter | Channel |
-|---|---|---|
-| E1 / E5 / E6 / E2 | U1 (I²C 0x2A) | CH0 / CH1 / CH2 / CH3 |
-| E3 / E7 / E8 / E4 | U2 (I²C 0x2B) | CH0 / CH1 / CH2 / CH3 |
+## The board
 
-Electrode numbering (E1…E4 = row nearest the RF edge, E1 nearest the nose) is
-also printed on the bottom silkscreen.
+Generated into `hardware/integrated/` by `tools/gen_integrated_sch.py` and
+`tools/gen_integrated_pcb.py`. Full design notes, calibration, firmware security and the USB data
+interface are in [docs/rev02_integrated.md](docs/rev02_integrated.md).
 
-### Stack-up
+- **One board is both the cell floor and the electronics**, 200 x 216 mm, 4 layers
+  (JLC04161H-7628). Its top copper is the cell's ground plane with the two 3 mm landing lines; every
+  part is on the underside. RF crosses the board through fenced vias, so there are no cables.
+- **Septum and ramps** are the fixture kit's `tem_plate` and `tem_ramp` boards, on 20 mm nylon spacers.
+- **Signal chain:** ADF4351 synthesizer (35 MHz - 4.4 GHz) → 10 dB pad → cell → 6 dB pad → AD8318
+  log detector → ADS1115 16-bit ADC.
+- **Control:** Raspberry Pi Pico 2 module (RP2350), 2 inch ST7789 LCD, green and red LEDs, one button.
+- **Hacks:** fit SMA J1/J2 and remove R1/R20 to use the cell with a NanoVNA; U.FL J5 on the
+  synthesizer's second output; spare GPIO and ADC lines on J4; test points on the RF blocks.
 
-4 layers, 1.6 mm (JLC04161H-7628):
+Ordering steps: [hardware/integrated/ORDER.md](hardware/integrated/ORDER.md).
 
-| Layer | Use |
+### Status
+
+| rev | state |
 |---|---|
-| F.Cu | components, routing, GND pour, RF microstrip (0.35 mm ≈ 50 Ω over In1) |
-| In1.Cu | solid GND: RF reference plane, and passive shield behind the electrodes so the hand holding the tool is not sensed |
-| In2.Cu | routing **only outside the electrode areas** (keep-outs over every electrode); GND pour under the handle |
-| B.Cu | the 8 electrodes (solder-mask covered); GND pour under the handle only |
+| 0.2 | 5 boards built (JLC, 2026-11). Synthesizer, detector, ADC, LCD, LEDs and USB all work with the bring-up firmware. A ~12 dB notch near 1.4 GHz appears on both boards. Bench tests ruled out the cell, leakage and the detector's soldering, and point to long stubs on the synthesizer's RFOUTA- termination and the detector's INLO decoupling (not yet confirmed) |
+| 0.3 | Generated, not built. Every ADF4351 and AD8318 support part is placed by hand at its pin, +5VA is a pour under the detector, and the router is kept out of sensitive areas. See [Rev 0.3](docs/rev02_integrated.md#rev-03-layout-fixes) |
 
-Each FDC2214 sits on top of the board in the gap between its four electrodes,
-so the sensor feed-throughs are only a few millimetres long.
+### Firmware
 
-### Parts
-
-| Block | Part | Notes |
-|---|---|---|
-| CDC ×2 | TI FDC2214RGHR | single-ended sensors, 0x2A / 0x2B |
-| Tank ×8 | 18 µH (Bourns CMH322522-180KL) ‖ 33 pF C0G 1 % | ≈ 5–6.5 MHz, values from the TI datasheet / EVM |
-| Clock | 40 MHz CMOS oscillator (Abracon ASE) | shared by both FDCs |
-| MCU | STM32F042F6P6 (TSSOP-20) | crystal-less USB FS, ROM USB-DFU bootloader |
-| USB | USB-C (HRO TYPE-C-31-M-12), USBLC6-2SC6 ESD | 5.1 kΩ CC pull-downs (sink, 5 V only) |
-| Power | AP2112K-3.3 LDO | |
-| RF | printed 8 mm loop + Samtec SMA-J-P-H-ST-EM1 edge SMA | |
-| UI | green + red LED, Murata PKLCS1212E piezo, CAL + BOOT buttons | |
-| Expansion | JST-SH 4-pin (Qwiic / STEMMA-QT pinout) for an optional I²C OLED | |
-| Debug | Tag-Connect TC2030-NL footprint (SWD), no part needed | |
-
-### MCU pin map
-
-| Pin | Function |
-|---|---|
-| PF0 / PF1 | I2C1 SDA / SCL (both FDCs + Qwiic) |
-| PA0 / PA1 | FDC U1 / U2 INTB (10 k pull-ups) |
-| PA2 | FDC SD (shutdown, both chips; 100 k pull-down = running) |
-| PA3 / PA4 | LED green / red (active high) |
-| PA5 | CAL button (to GND, enable internal pull-up) |
-| PA6 | piezo buzzer (TIM3_CH1 / TIM16_CH1 PWM) |
-| PA11 / PA12 | USB D− / D+ (TSSOP-20 pins 17/18, set `SYSCFG_CFGR1.PA11_PA12_RMP`) |
-| PA13 / PA14 | SWDIO / SWCLK (Tag-Connect pads) |
-| BOOT0 | BOOT button to 3V3 (10 k pull-down) |
-
-## Programming (no tools needed)
-
-The STM32F042 has a USB-DFU bootloader in ROM, so firmware is flashed through
-the same USB-C port that powers the board:
-
-- **Fresh board:** an unprogrammed STM32F04x starts straight into the ROM DFU
-  bootloader (this is how projects such as
-  [dap42](https://github.com/devanlai/dap42) are flashed).
-- **Later:** hold **BOOT** while plugging in USB (or have the firmware jump to
-  the bootloader on a USB command), then:
+`firmware/bringup` is **bring-up firmware**, not the detector: it gives raw sweeps and per-block
+checks over USB serial, with no verdict and no stored reference. Build it with the Pico SDK:
 
 ```sh
-dfu-util -a 0 -s 0x08000000:leave -D firmware.bin
+cmake -S firmware/bringup -B build/bringup -G Ninja -DPICO_SDK_PATH=/path/to/pico-sdk
+ninja -C build/bringup
 ```
 
-STM32CubeProgrammer (USB mode) works too. The Tag-Connect SWD footprint is
-only there as a recovery/debug path for people who own a probe.
+Flash `build/bringup/lid_bringup.uf2` by holding BOOTSEL on the Pico while plugging it in, or send
+`bootsel` to running firmware. Then use `tools/bringup.py` (Linux):
 
-> To validate on the first build: that ROM DFU enumerates on the TSSOP-20 package
-> (USB on the remapped pins 17/18), and the option-byte state of the BOOT0 pin on
-> the delivered parts.
+```sh
+python3 tools/bringup.py cmd status               # any firmware command (try: help)
+python3 tools/bringup.py sweep 1000 1450 5        # raw sweep, start/stop/step in MHz
+python3 tools/bringup.py noise 1000 1450 5 -n 5   # per-point spread in dB (target <= 0.05 dB)
+```
 
-## Suggested FDC2214 configuration
+The detector firmware still has to be written: self-check, the rule, the green/red result, signed
+updates and the HID interface for specialist data collection.
 
-Starting point, from datasheet §8.2.3:
+## How we got here
 
-- `CLOCK_DIVIDERS_CHx = 0x2001` (`CHx_FIN_SEL = b10`, single-ended sensor; `CHx_FREF_DIVIDER = 1`)
-- External 40 MHz clock: `CONFIG.REF_CLK_SRC = 1`
-- Tune `DRIVE_CURRENT_CHx` so the tank amplitude is 1.2–1.8 Vpk (start around IDRIVE = 15)
-- Autoscan all 4 channels: `MUX_CONFIG.AUTOSCAN_EN = 1`, `RR_SEQUENCE = b10`, deglitch 10 MHz
+1. **Rev 0.1, capacitive array plus RF loop** ([docs/rev01_capacitive.md](docs/rev01_capacitive.md)):
+   a handheld with eight capacitive electrodes and a near-field loop for a NanoVNA. Not built.
+2. **Simulations** ([docs/simulation.md](docs/simulation.md)): floating antenna copper hidden behind
+   the battery isn't detectable capacitively, but an RF probe sees a narrow in-band absorption that
+   plain copper doesn't.
+3. **First NanoVNA session** on a tampered Nano X
+   ([data/rf/2026-10-18/notes.md](data/rf/2026-10-18/notes.md)): a resonance was visible, but only
+   with the probe right over the antenna's feed.
+4. **RF fixture kit** ([docs/fixtures.md](docs/fixtures.md), `hardware/fixtures/`): a slot line and an
+   open TEM cell to remove that position dependence. On 2026-10-26 the TEM cell showed the tampered
+   unit's notch at every placement ([data/rf/2026-10-26/notes.md](data/rf/2026-10-26/notes.md)).
+   Crossed and coaxial large loops were simulated too, and the TEM cell stayed the practical choice.
+5. **Integrated TEM cell** (rev 0.2, then 0.3): the fixture with the NanoVNA replaced by an on-board
+   scalar sweep.
 
 ## Repository layout
 
 ```
 hardware/
-  lib/                  project symbols + footprints (FDC2214, electrode, near-field loop)
-  detector/             KiCad 10 project (schematic + 4-layer PCB)
-    fab/                gerbers + drill (zip), BOM, JLC BOM/CPL, schematic PDF
-docs/img/               renders
-tools/                  Python generators used to produce the KiCad files and outputs
+  integrated/   the integrated TEM cell (KiCad 10), fab/ has gerbers, JLC BOM/CPL, schematic PDF
+  fixtures/     NanoVNA fixture kit: slot line, TEM base, septum plate, ramps
+  detector/     rev 0.1 capacitive board (not built)
+  lib/          project symbols and footprints
+firmware/
+  bringup/      rev 0.2 bring-up firmware (Pico SDK)
+tools/          generators for every KiCad project, NanoVNA capture and analysis, bringup.py
+sim/            electrostatic and FDTD simulations
+data/rf/        NanoVNA captures with session notes
+docs/           design notes, simulations, measurements, renders
 ```
 
-The KiCad files were generated by the scripts in `tools/` so the first
-revision is reviewable as code. They are ordinary KiCad projects, though: once
-you edit them by hand in KiCad, treat the KiCad files as the source of truth.
+## Regenerating
 
-Regenerating needs KiCad 10 (its Python `pcbnew` module and `kicad-cli`). Routing also
-needs Java 17+ and [Freerouting](https://github.com/freerouting/freerouting) **1.9.0**.
-1.9 routes this board completely; 2.x did noticeably worse on it. 1.9 needs an X
-display, and `Xvfb` works.
+The KiCad files are generated by the scripts in `tools/`, so the design is reviewable as code. Treat
+the committed `.kicad_pcb` as the source of truth: the router isn't deterministic, so regenerating
+gives a different layout.
+
+The integrated board needs KiCad 10 (its Python `pcbnew` module and `kicad-cli`), Java 17+ and
+[Freerouting](https://github.com/freerouting/freerouting) 2.1.0:
 
 ```sh
-python3 tools/gen_lib.py              # project library
-python3 tools/gen_detector_sch.py     # schematic
-Xvfb :97 & export DISPLAY=:97
-FREEROUTING_JAR=/path/to/freerouting-1.9.0.jar FREEROUTING_PASSES=100 \
-    python3 tools/gen_detector_pcb.py # placement, pre-routing, autoroute, pours, stitching
-python3 tools/make_outputs.py         # gerbers/drill/BOM/CPL/PDF + renders
+cd tools
+python3 gen_integrated_sch.py
+FREEROUTING_JAR=/path/to/freerouting-2.1.0.jar \
+    FREEROUTING_EXTRA="--gui.enabled=false --router.job_timeout=00:10:00" \
+    python3 gen_integrated_pcb.py           # place, hand-route RF and support parts, autoroute, pour
+python3 gen_integrated_pcb.py --outputs     # gerbers, BOM/CPL, schematic PDF, renders, DRC/ERC
 ```
 
-The PCB generator places everything, then hand-routes these parts deterministically:
-the RF microstrip, the converters' digital escapes, the north-side power/control
-escapes, the tank for the electrode diagonally opposite each converter's analog pins,
-and a small bus to the handle. It fans every GND pad out to the In1 plane and lets
-Freerouting do the rest. GND is not autorouted: it comes from pours on F.Cu / In1 (and
-In2 / B.Cu under the handle) plus stitching vias.
-
-Current check status (`hardware/detector/fab/*_report.txt`): ERC 0 violations;
-DRC 0 errors, 0 unconnected, schematic parity OK. The remaining warnings are two
-"silkscreen clipped by board edge" from the stock USB-C footprint and three
-single-spoke thermal reliefs on pads that also have a direct via to the GND plane.
-
-## Ordering
-
-`hardware/detector/fab/` contains everything for a 4-layer PCB + assembly
-order:
-
-- `implant_detector_gerbers.zip`: select 4 layers, 1.6 mm, and the
-  **JLC04161H-7628** stack-up (the 0.35 mm RF line is 50 Ω only on that stack-up).
-  Minimum features: 0.15 mm track/space, 0.3 mm drill / 0.6 mm via, so no
-  advanced-capability options are needed.
-- `bom_jlc.csv` + `cpl_jlc.csv` (origin = bottom-left corner of the board).
-  MPNs are given; only the USB-C connector has a pre-filled LCSC number, so
-  let the assembler match the rest by MPN and **check the rotations in the
-  assembly preview**, especially U1/U2/U3, the LEDs and J1.
-- The edge-launch SMA (J4) straddles the board edge. If the assembler won't
-  place it, it is easy to hand-solder.
-- The electrodes, the RF loop and the Tag-Connect footprint are bare copper,
-  not parts.
-- `schematic.pdf` for reference.
-
-## Open questions the first build must answer
-
-- [ ] Actual sensitivity through 1–3 mm of ABS/PC to a thin flex-PCB antenna.
-- [ ] Repeatability between placements (jig needed?) and drift with temperature / hand proximity.
-- [ ] Whether the solid In1 GND shield behind the electrodes costs too much range
-      (alternatives: hatched shield, active shield driver).
-- [ ] Electrode size / pitch trade-off (resolution vs. range).
-- [ ] RF loop: usable frequency range and repeatability with NanoVNA-class instruments, and
-      what an on-board (VNA-less) front end would need. See
-      [docs/rf_measurements.md](docs/rf_measurements.md) and `tools/analyze_s1p.py`.
-- [ ] ROM DFU on the TSSOP-20 STM32F042 (see above).
-- [ ] Reference signatures for each Ledger model.
+It can leave a few connections open. Run several attempts with `LID_PCB_OUT` set to different paths
+and keep one with 0 unconnected in DRC. The fixtures come from `tools/gen_fixtures.py`; the rev 0.1
+board's steps are in [docs/rev01_capacitive.md](docs/rev01_capacitive.md#files-and-regenerating).
 
 ## License
 
