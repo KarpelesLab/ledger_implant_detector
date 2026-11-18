@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate hardware/integrated/integrated.kicad_sch: the rev 0.2 integrated TEM cell detector.
+"""Generate hardware/integrated/integrated.kicad_sch: the rev 0.3 integrated TEM cell detector.
 
 See docs/rev02_integrated.md. "Room for hacks" parts are marked DNP or are 0 ohm links.
 """
@@ -21,7 +21,7 @@ TP = 'TestPoint:TestPoint_Pad_D1.5mm'
 
 
 def gen():
-    sch = Schematic(NAME, 'Ledger Implant Detector: integrated TEM cell (CONCEPT)', '0.2',
+    sch = Schematic(NAME, 'Ledger Implant Detector: integrated TEM cell (CONCEPT)', '0.3',
                     {'lid': os.path.join(ROOT, 'hardware', 'lib', 'lid.kicad_sym')}, paper='A1',
                     comments=('CONCEPT DESIGN - NOT YET BUILT OR VALIDATED',
                               'https://github.com/KarpelesLab/ledger_implant_detector'))
@@ -116,7 +116,9 @@ def gen():
     R('R26', '0', 275, 93, 'DET_OUT', 'DET_SET')
     for i, (val) in enumerate(('100n', '100p', '100n', '100p')):
         C('C%d' % (24 + i), val, 305, 85 + 7 * i, '+5VA', 'GND')
+    # FB1 and its bulk cap sit at U3: +5VA is a plane on In1 under the detector block (rev 0.3)
     sch.add('FB1', 'Device:FerriteBead', '600R', 330, 85, {'1': 'VBUS', '2': '+5VA'}, rot=90, footprint=L0603)
+    C('C35', '10u', 305, 113, '+5VA', 'GND', fp=C0805, fields={'Voltage': '10V', 'Dielectric': 'X5R'})
     sch.add('U4', 'Analog_ADC:ADS1115IDGS', 'ADS1115', 345, 130, {
         '1': 'GND', '2': 'ADC_RDY', '3': 'GND', '4': 'ADC_0', '5': 'ADC_1', '6': 'ADC_2', '7': 'ADC_3', '8': 'ADC_VDD',
         '9': 'I2C_SDA', '10': 'I2C_SCL'}, footprint='Package_SO:TSSOP-10_3x3mm_P0.5mm',

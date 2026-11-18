@@ -1,14 +1,24 @@
 # Ordering the integrated TEM cell from JLCPCB (rev 0.3, concept)
 
 The files here are **rev 0.3, not yet built**. Rev 0.2 (5 boards, 2026-11) works, but has a
-12-15 dB notch around 1.4 GHz. It was traced to the ADF4351's RFOUTA- termination, wired through
-45 mm of trace, and the AD8318's INLO decoupling, 22 mm away. Rev 0.3 places and wires those parts
+12-15 dB notch around 1.4 GHz. The most likely cause (not yet confirmed) is the ADF4351's RFOUTA-
+termination, wired through 45 mm of trace, and the AD8318's INLO decoupling, 22 mm away. Rev 0.3 places and wires those parts
 by hand at the pins (`rf_terminations()` in `tools/gen_integrated_pcb.py`), so the rest of the board
-is re-routed too. It also adds thermal reliefs on the ground pads except the RF ones, and keeps the
-U3 via off the pads. Bring-up firmware: `firmware/bringup`.
+is re-routed too. A review of that layout found the same kind of fault elsewhere, so rev 0.3 also:
 
-**Check in JLC's preview:** J5 (U.FL) moved and turned. Confirm its signal pin still lands on the
-round pad, as you did for rev 0.2.
+- places every decoupling, bias and loop-filter part of U2 and U3 by hand, next to its pin
+  (`support_parts()`). VTUNE is a few mm, buried on In1 under U2; TP2 is next to the loop filter;
+- keeps the router out of the gaps between the pads of small parts and off In1 under the chips;
+- makes +5VA a pour on In1 under the detector, like +3V3A under the source, with FB1 and a new
+  10 uF bulk capacitor (C35) next to U3;
+- adds ground vias round the cell feed vias, and moves the exposed-pad vias of U2 and U3 out of
+  the paste windows (4 smaller windows; KiCad reports the two footprints as modified on purpose);
+- adds thermal reliefs on the ground pads except the RF ones, and keeps the U3 via off the pads.
+
+Bring-up firmware: `firmware/bringup`.
+
+**Check in JLC's preview:** J5 (U.FL) moved and turned, and Y1 is turned 180 degrees. Confirm J5's
+signal pin lands on the round pad and Y1's pin 1 marking matches, as you did for rev 0.2.
 
 ## Main board
 

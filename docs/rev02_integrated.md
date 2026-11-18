@@ -1,8 +1,11 @@
 # Rev 0.2: integrated TEM cell detector (design proposal)
 
-> Status: **concept, nothing built.** The schematic and board are generated (see
-> [The board](#the-board)) but untested. The evidence so far is one genuine and one tampered Nano X in the cell, plus S11 of
-> a tampered Flex's antenna. See [what still needs testing](#test-before-relying-on-it).
+> Status: **rev 0.2 built (5 boards, 2026-11), rev 0.3 generated, not built.** Rev 0.2 works but
+> has a ~12 dB notch around 1.4 GHz, most likely from long stubs on the synthesizer's RFOUTA-
+> termination and the detector's INLO decoupling (not yet confirmed); see
+> [Rev 0.3](#rev-03-layout-fixes). The rest of this page describes the design as proposed. The
+> evidence it was based on is one genuine and one tampered Nano X in the cell, plus S11 of a
+> tampered Flex's antenna. See [what still needs testing](#test-before-relying-on-it).
 
 ## The idea
 
@@ -318,10 +321,57 @@ ADIsimPLL if the lock is slow or unstable.
   a spare footprint on VCOM.
 - The 0.35 mm width for 50 ohm assumes the JLC04161H-7628 stack-up, and the stub to the unfitted
   SMA pad is 2.8 mm.
-- The analog 3.3 V rail is a ring and pour on In1 inside the source block, and the ADC runs from
-  the Pico's 3.3 V through a ferrite bead.
+- The analog 3.3 V rail is a pour on In1 inside the source block, +5VA one inside the detector
+  block, and the ADC runs from the Pico's 3.3 V through a ferrite bead.
 - Signals between the MCU and each RF block run on In1 and enter on the underside. If digital
   noise reaches the detector, the shield frames are the first thing to try.
+
+## Rev 0.3: layout fixes
+
+Bench tests on the rev 0.2 boards (2026-11-17) ruled out the cell, leakage and U3's soldering for the
+1.4 GHz notch. It moves with neither power level nor cell, and a NanoVNA driving the detector directly
+shows no deep notch. Rev 0.2 left the small parts round U2 and U3 to a greedy placer that kept 2.8 mm
+clear of the chips for the router. They landed 7-35 mm from their pins, and the router wired RFOUTA-
+through 45 mm to its pull-up and termination, and INLO through 22 mm to its decoupling. Both stubs
+are long enough to resonate in the band, so they are the main suspect. The J5 test (driving the
+cell from output B) should confirm it. Rev 0.3 changes only the layout, except for one added capacitor:
+
+- **RF terminations at the pins** (`rf_terminations()`): RFOUTA+/- and RFOUTB+/- leave straight from
+  the pins and turn at three depths, so nothing crosses. Each net is under 2 mm, except RFB+/- (17 mm,
+  only used through J5). INLO's C22 sits straight below the pin.
+- **Every other U2/U3 part at its pin** (`support_parts()`): VVCO decoupling (C16, C15, FB2) on one
+  line from pin 17; TEMP, RSET, VCOM and VREF parts in two columns beside the chip, 1.5-6 mm of
+  track each. The loop filter is a short spine at CP (pin 7). VTUNE drops to In1 at pin 20 and runs
+  under the chip between the exposed pad vias, about 10 mm and buried between ground planes. TP2
+  sits next to the loop filter on a short In1 branch. Y1 is turned to face REFIN, with R14 at its
+  output. Every detector part is within 2 mm of its pin.
+- **+5VA is a pour on In1** under the detector, like +3V3A under the source. FB1 and a new 10 uF
+  bulk capacitor (C35) moved from the Pico to U3. Rev 0.2 ran +5VA 179 mm from the Pico, between
+  C21's pads and along the INHI line.
+- **The router is kept out of** the gap between the two pads of every small part, and In1 under
+  both chips. A keepout along the 50 ohm chains stalled the router, so instead the generator
+  lists any track within 1 mm of the hand-drawn RF lines (on the committed board, only DET_TEMP
+  for 0.5 mm at U3).
+  U2's digital pins are fanned out by hand to vias, and Y1's rail has a locked In1 track to U2,
+  so the digital lines can't cut it off from the +3V3A pour.
+- **Ground:** three more vias round each cell feed via. Exposed-pad vias sit in a cross between 4
+  paste windows instead of inside them, so they don't wick the solder away. Ground pads get
+  thermal reliefs for hand soldering, except the RF ones.
+
+Two independent reviews (agents, 2026-11-18) checked the copper. The first, on the board with only
+the RF terminations fixed, found the problems behind the other points. The second, on this layout,
+confirmed six of its eight findings fixed and found VTUNE's via 0.18 mm from the RFOUTA+ line and
+MUXOUT threaded under Y1; both were moved before this board was generated. What remains, accepted:
+
+- VTUNE is about 17 mm from pin 20 to the filter, buried on In1 under U2, with TP2 on a 6.5 mm stub.
+- C11 (VCOM) is 6 mm and C14 (VP) 5 mm from their pins; every other U2/U3 capacitor is within 3 mm.
+- The nearest ground vias to each cell feed via are 2.9 mm away. The landing line's 1 mm coplanar
+  gap doesn't allow closer ones.
+- MUXOUT runs 0.3 mm beside REFIN for about 4.5 mm between C18 and C19. It is set to digital lock
+  detect, so it doesn't toggle once locked.
+- RFB+ passes 0.3 mm from the RFOUTA- termination; its pull-up R8 is 15 mm from the pin. Output B
+  is off in normal use.
+- DET_TEMP runs 0.38 mm beside INHI for 0.5 mm at U3, and the +5VA escape 0.4 mm beside INLO for 1.7 mm.
 
 ## What it will miss
 
