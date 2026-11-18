@@ -1,17 +1,14 @@
 ** Drc report for integrated.kicad_pcb **
-** Created on 2026-11-04T20:40:00 **
+** Created on 2026-11-17T23:37:57 **
 ** Report includes: Errors, Warnings **
 
-** Found 24 DRC violations **
+** Found 23 DRC violations **
 [track_dangling]: Track has unconnected end
     Local override; warning
     @(150.0000 mm, 56.1965 mm): Track [/CELL_P1] on F.Cu, length 11.5965 mm
 [track_dangling]: Track has unconnected end
     Local override; warning
     @(150.0000 mm, 243.8035 mm): Track [/CELL_P2] on F.Cu, length 11.5965 mm
-[track_dangling]: Track has unconnected end
-    Local override; warning
-    @(164.7750 mm, 252.6000 mm): Track [/RX_B] on B.Cu, length 1.2500 mm
 [silk_edge_clearance]: Silkscreen clipped by board edge
     Rule: board setup constraints silk; warning
     @(280.0000 mm, 46.0000 mm): Segment on Edge.Cuts
@@ -35,11 +32,11 @@
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
     @(235.0000 mm, 116.0000 mm): Polygon on F.Silkscreen
-    @(269.8800 mm, 141.1100 mm): PTH pad 37 [unconnected-(U1-3V3_EN-Pad37)] of U1
+    @(269.8800 mm, 158.8900 mm): PTH pad 4 [/SYN_CLK] of U1
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
     @(235.0000 mm, 116.0000 mm): Polygon on F.Silkscreen
-    @(269.8800 mm, 158.8900 mm): PTH pad 4 [/SYN_CLK] of U1
+    @(269.8800 mm, 141.1100 mm): PTH pad 37 [unconnected-(U1-3V3_EN-Pad37)] of U1
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
     @(235.0000 mm, 116.0000 mm): Polygon on F.Silkscreen
@@ -78,16 +75,8 @@
     @(264.5627 mm, 166.4125 mm): Segment of R34 on B.Silkscreen
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
-    @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
-    @(263.9750 mm, 165.8900 mm): Pad 1 [/ADC_RDY] of R34 on B.Cu
-[silk_over_copper]: Silkscreen clipped by solder mask
-    Local override; warning
     @(182.0000 mm, 79.0000 mm): PCB text 'SOURCE - fit shield can on this frame' on B.Silkscreen
     @(138.9000 mm, 76.9000 mm): Polygon on B.Mask
-[silk_over_copper]: Silkscreen clipped by solder mask
-    Local override; warning
-    @(196.0000 mm, 43.8000 mm): Reference field of J5
-    @(138.9000 mm, 42.4000 mm): Polygon on B.Mask
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
     @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
@@ -96,6 +85,14 @@
     Local override; warning
     @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
     @(238.5750 mm, 165.8900 mm): Pad 2 [/LCD_BL_R] of R35 on B.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
+    @(263.9750 mm, 165.8900 mm): Pad 1 [/ADC_RDY] of R34 on B.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(177.0000 mm, 249.8300 mm): Reference field of U3
+    @(176.3750 mm, 250.0475 mm): Pad 1 [/DET_LO] of C22 on B.Cu
 
 ** Found 0 unconnected pads **
 

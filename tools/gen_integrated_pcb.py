@@ -51,15 +51,17 @@ TX_SHUNT = [('C1', 8.5), ('C2', 13.5), ('R2', 15.5), ('R4', 20.5)]
 RX_SERIES = [('R20', 6.0), ('R22', 11.0), ('C21', 18.5)]
 RX_SHUNT = [('R21', 8.5), ('R23', 13.5), ('R24', 15.8)]
 # hand-routed; hidden from the autorouter. RFA_P is not: the router adds its pull-up to the hand-drawn line
-RF_NETS = ('CELL_P1', 'CELL_P2', 'TX_A', 'TX_B', 'TX_C', 'RX_A', 'RX_B', 'DET_HI')
+RF_NETS = ('CELL_P1', 'CELL_P2', 'TX_A', 'TX_B', 'TX_C', 'RX_A', 'RX_B', 'DET_HI',
+           'RFA_N', 'RFA_T', 'RFB_P', 'RFB_N', 'RFB_T', 'RFB_OUT', 'DET_LO')     # see rf_terminations()
 
 # fixed placement: ref -> (x, y, rot, side)
 FIXED = {
     'J1': (0, -PAD_Y, 90, 'F'), 'J2': (0, PAD_Y, 270, 'F'),
     'U2': (32.0, -95.0, 0, 'B'), 'U3': (27.0, 96.5, 0, 'B'), 'U4': (46.0, 92.0, 0, 'B'),
-    'U5': (52.0, -82.0, 0, 'B'), 'Y1': (46.0, -84.0, 0, 'B'), 'J5': (46.0, -103.0, 180, 'B'),
+    'U5': (52.0, -82.0, 0, 'B'), 'Y1': (46.0, -84.0, 0, 'B'),
     'U1': (127.5, 8.89, 90, 'B'),       # Pico 2: pin 1 and the micro-USB at the +x edge
-    'J3': (93.5, 32.0, 90, 'F'), 'D1': (92.0, -45.0, 0, 'F'), 'D2': (108.0, -45.0, 0, 'F'),
+    # J3: pin 1 (GND) at +x. Rev 0.2 had it at -x, so the module had to sit turned round, off the board edge
+    'J3': (111.28, 32.0, 270, 'F'), 'D1': (92.0, -45.0, 0, 'F'), 'D2': (108.0, -45.0, 0, 'F'),
     'SW1': (97.0, -66.0, 0, 'F'),
     'J4': (86.0, 60.0, 90, 'B'),
     'TP1': (40.0, 80.0, 0, 'B'), 'TP2': (40.0, -76.0, 0, 'B'), 'TP3': (46.0, -76.0, 0, 'B'),
@@ -67,14 +69,12 @@ FIXED = {
 }
 # small parts placed next to the pad they serve: ref -> (target ref, target pad)
 NEAR = {
-    'R5': ('U2', '12'), 'R6': ('U2', '13'), 'C4': ('U2', '13'), 'R7': ('U2', '13'),
-    'R8': ('U2', '14'), 'R9': ('U2', '15'), 'C5': ('U2', '14'), 'C6': ('U2', '15'), 'R10': ('U2', '15'),
     'R11': ('U2', '22'), 'C7': ('U2', '7'), 'R12': ('U2', '7'), 'C8': ('U2', '7'), 'R13': ('U2', '20'), 'C9': ('U2', '20'),
     'C10': ('U2', '19'), 'C11': ('U2', '23'), 'C12': ('U2', '24'), 'C13': ('U2', '23'),
-    'C14': ('U2', '6'), 'C15': ('U2', '16'), 'C16': ('U2', '17'), 'C17': ('U2', '10'), 'C18': ('U2', '28'), 'C19': ('U2', '32'),
+    'C14': ('U2', '6'), 'C15': ('U2', '16'), 'C17': ('U2', '10'), 'C18': ('U2', '28'), 'C19': ('U2', '32'),
     'FB2': ('U2', '16'), 'FB3': ('U2', '6'), 'R14': ('U2', '29'), 'C20': ('Y1', '4'),
-    'R31': ('U3', '6'), 'C22': ('U3', '15'), 'R25': ('U3', '10'), 'C23': ('U3', '5'), 'R26': ('U3', '7'),
-    'C24': ('U3', '3'), 'C25': ('U3', '4'), 'C26': ('U3', '9'), 'C27': ('U3', '9'),
+    'R31': ('U3', '6'), 'R25': ('U3', '10'), 'C23': ('U3', '5'), 'R26': ('U3', '7'),
+    'C24': ('U3', '3'), 'C26': ('U3', '9'), 'C27': ('U3', '9'),
     'R27': ('U4', '4'), 'C28': ('U4', '4'), 'R28': ('U4', '5'), 'C29': ('U4', '5'), 'R29': ('U4', '6'), 'R30': ('U4', '6'),
     'C30': ('U4', '6'), 'FB4': ('U4', '8'), 'C31': ('U4', '8'),
     'C32': ('U5', '1'), 'C33': ('U5', '5'),
@@ -165,7 +165,7 @@ class B:
             ns.SetNetclassPatternAssignment(pat, 'Power')
         tb = b.GetTitleBlock()
         tb.SetTitle('Ledger Implant Detector: integrated TEM cell (CONCEPT)')
-        tb.SetRevision('0.2')
+        tb.SetRevision('0.3')
         tb.SetCompany(gf.REPO)
         tb.SetComment(0, 'CONCEPT DESIGN - NOT YET BUILT OR VALIDATED')
         tb.SetComment(1, 'Stackup: JLC04161H-7628 (4L 1.6mm)')
@@ -322,7 +322,9 @@ class B:
         z.SetAssignedPriority(priority)
         z.SetMinThickness(FromMM(0.25))
         z.SetLocalClearance(FromMM(clearance))
-        z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
+        z.SetPadConnection(pcbnew.ZONE_CONNECTION_THERMAL)   # see thermals(): RF grounds stay solid
+        z.SetThermalReliefGap(FromMM(THERMAL_GAP))
+        z.SetThermalReliefSpokeWidth(FromMM(THERMAL_SPOKE))
         z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)
         self.b.Add(z)
 
@@ -391,6 +393,111 @@ def rf_chain(bd, sy, series, shunts, first_net):
         prev_x = bd.padxy(ref, pin_out)[0]
         prev_net = bd.padnet(ref, pin_out).lstrip('/')
     return prev_x, prev_net
+
+
+def place_at(bd, ref, x, y, vertical, pad_net, at):
+    """2-pad part centred on (x, y), along y if vertical, with its pad on pad_net nearest the point `at`."""
+    fp = bd.place(ref, x, y, 90 if vertical else 0)
+    pads = list(fp.Pads())
+    mine = [p for p in pads if p.GetNetname().lstrip('/') == pad_net][0]
+    other = pads[1] if mine is pads[0] else pads[0]
+    d = lambda p: math.hypot(mm(p.GetPosition())[0] - at[0], mm(p.GetPosition())[1] - at[1])
+    if d(mine) > d(other):
+        fp.SetOrientationDegrees(270 if vertical else 180)
+    return fp
+
+
+def hand(bd, pts, net, w=0.2):
+    """A locked track, also kept as boxes so that near_place() leaves it alone."""
+    bd.poly(pts, w, net)
+    for (ax, ay), (cx, cy) in zip(pts, pts[1:]):
+        bd.boxes.append((min(ax, cx) - w / 2 - 0.3, min(ay, cy) - w / 2 - 0.3, max(ax, cx) + w / 2 + 0.3, max(ay, cy) + w / 2 + 0.3))
+
+
+def rf_terminations(bd):
+    """The parts on the ADF4351 outputs and the AD8318 input, placed and wired by hand next to the pins.
+
+    Rev 0.2 left them to near_place() and the router: the margin kept around each chip pushed them
+    7-14 mm away, and the router wired RFOUTA- through 45 mm to its pull-up and termination and
+    INLO through 22 mm to its decoupling. Both stubs resonate in the band (a 12-15 dB notch at
+    1.4 GHz on the built boards, bench-tested 2026-11-17). Here every one of those nets is a few
+    mm long and fully drawn, so the router has nothing left to do on them.
+
+    Source, below U2's pin row (pins 12-15 face the board edge): RFOUTA+ is the 50 ohm line to C3,
+    drawn in build(). Its pull-up R5 hangs to its left. RFOUTA-, RFOUTB+ and RFOUTB- leave
+    straight down and turn right at three depths, the deepest first, so nothing crosses: RFOUTA-
+    gets R6 (pull-up), C4 and R7 (its 50 ohm termination); RFOUTB+ gets R8 and C5 to J5; RFOUTB-
+    gets R9, C6 and R10. VVCO (pins 16-17) is decoupled by C16 right at pin 17.
+    """
+    W = 0.2
+    x12, y12 = bd.padxy('U2', '12')
+    x13, x14, x15 = (bd.padxy('U2', n)[0] for n in ('13', '14', '15'))
+    LA, LB, LC = y12 - 2.56, y12 - 1.71, y12 - 1.11        # turn depths: RFOUTA-, RFOUTB+, RFOUTB-
+    # RFOUTA+ pull-up, left of the 50 ohm line
+    place_at(bd, 'R5', x12 - 1.125, LA - 0.4, False, 'RFA_P', (x12, LA - 0.4))
+    hand(bd, [bd.padxy('R5', [p.GetNumber() for p in bd.fps['R5'].Pads() if p.GetNetname().lstrip('/') == 'RFA_P'][0]), (x12, LA - 0.4)], 'RFA_P')
+    # RFOUTA-: R6 to +3V3A, then C4 and R7 to GND
+    xa = x13 + 3.75
+    place_at(bd, 'R6', xa, LA - 0.825, True, 'RFA_N', (xa, LA))
+    place_at(bd, 'C4', xa + 2.4, LA, False, 'RFA_N', (xa, LA))
+    place_at(bd, 'R7', xa + 4.8, LA - 0.825, True, 'RFA_T', (xa + 4.8, LA))
+    c4a = [mm(p.GetPosition()) for p in bd.fps['C4'].Pads() if p.GetNetname().lstrip('/') == 'RFA_N'][0]
+    c4b = [mm(p.GetPosition()) for p in bd.fps['C4'].Pads() if p.GetNetname().lstrip('/') == 'RFA_T'][0]
+    hand(bd, [(x13, y12), (x13, LA), c4a], 'RFA_N', W)
+    hand(bd, [c4b, (xa + 4.8, LA)], 'RFA_T', W)
+    # RFOUTB+: down at xb, R8 to +3V3A on the way, C5 and J5 at the bottom
+    xb, yb = xa + 7.3, LA - 3.4
+    hand(bd, [(x14, y12), (x14, LB), (xb, LB), (xb, yb)], 'RFB_P', W)
+    place_at(bd, 'R8', xb + 1.075, LA - 1.2, False, 'RFB_P', (xb, LA - 1.2))
+    place_at(bd, 'C5', xb + 1.7, yb, False, 'RFB_P', (xb, yb))
+    r8 = [mm(p.GetPosition()) for p in bd.fps['R8'].Pads() if p.GetNetname().lstrip('/') == 'RFB_P'][0]
+    hand(bd, [(xb, r8[1]), r8], 'RFB_P', W)
+    c5a = [mm(p.GetPosition()) for p in bd.fps['C5'].Pads() if p.GetNetname().lstrip('/') == 'RFB_P'][0]
+    c5b = [mm(p.GetPosition()) for p in bd.fps['C5'].Pads() if p.GetNetname().lstrip('/') == 'RFB_OUT'][0]
+    hand(bd, [(xb, yb), c5a], 'RFB_P', W)
+    jx = c5b[0] + 3.3
+    for rot in (0, 180):
+        fp = bd.place('J5', jx, yb, rot, 'B')
+        if bd.padxy('J5', '1')[0] < jx:
+            break
+        bd.b.Remove(fp)
+        bd.boxes.pop()
+    hand(bd, [c5b, bd.padxy('J5', '1')], 'RFB_OUT', W)
+    # RFOUTB-: R9 to +3V3A, then C6 and R10 to GND
+    xc = xb + 4.2
+    place_at(bd, 'R9', xc, LC - 0.825, True, 'RFB_N', (xc, LC))
+    place_at(bd, 'C6', xc + 2.4, LC, False, 'RFB_N', (xc, LC))
+    place_at(bd, 'R10', xc + 4.8, LC - 0.825, True, 'RFB_T', (xc + 4.8, LC))
+    c6a = [mm(p.GetPosition()) for p in bd.fps['C6'].Pads() if p.GetNetname().lstrip('/') == 'RFB_N'][0]
+    c6b = [mm(p.GetPosition()) for p in bd.fps['C6'].Pads() if p.GetNetname().lstrip('/') == 'RFB_T'][0]
+    hand(bd, [(x15, y12), (x15, LC), c6a], 'RFB_N', W)
+    hand(bd, [c6b, (xc + 4.8, LC)], 'RFB_T', W)
+    # VVCO: pins 16 and 17 joined across the corner, C16 (100 pF) right at pin 17
+    p16, p17 = bd.padxy('U2', '16'), bd.padxy('U2', '17')
+    place_at(bd, 'C16', p17[0] + 2.5, p17[1], False, 'VVCO', p17)
+    c16 = [mm(p.GetPosition()) for p in bd.fps['C16'].Pads() if p.GetNetname().lstrip('/') == 'VVCO'][0]
+    hand(bd, [p16, p17, c16], 'VVCO', W)
+    # ground ends: a via right next to each, before the router takes the room
+    for ref, dx, dy in (('R7', 0, -1.0), ('R10', 0, -1.0), ('C16', 1.0, 0)):
+        gx, gy = [mm(p.GetPosition()) for p in bd.fps[ref].Pads() if p.GetNetname() == 'GND'][0]
+        bd.via(gx + dx, gy + dy, 'GND', 0.6, 0.3)
+
+    # Detector: INLO (pin 15) is left of the INHI line (pin 14). C22 sits straight below it; ENBL/VPOS
+    # (pin 16) steps out sideways first, to its 100 pF C25.
+    x14d, y14d = bd.padxy('U3', '14')
+    x15d, _ = bd.padxy('U3', '15')
+    x16d, _ = bd.padxy('U3', '16')
+    cx = x14d - 0.175 - 0.3 - 0.475                         # clear of the INHI line
+    place_at(bd, 'C22', cx, y14d + 2.385, True, 'DET_LO', (cx, y14d))
+    c22 = [mm(p.GetPosition()) for p in bd.fps['C22'].Pads() if p.GetNetname().lstrip('/') == 'DET_LO'][0]
+    hand(bd, [(x15d, y14d), (x15d, c22[1])], 'DET_LO', W)
+    ys = y14d + 0.56
+    place_at(bd, 'C25', x16d - 3.2, ys, False, '+5VA', (x16d, ys))
+    c25 = [mm(p.GetPosition()) for p in bd.fps['C25'].Pads() if p.GetNetname().lstrip('/') == '+5VA'][0]
+    hand(bd, [(x16d, y14d), (x16d, ys), c25], '+5VA', 0.3)
+    for ref, dx, dy in (('C22', -1.1, 0), ('C25', -1.0, 0)):
+        gx, gy = [mm(p.GetPosition()) for p in bd.fps[ref].Pads() if p.GetNetname() == 'GND'][0]
+        bd.via(gx + dx, gy + dy, 'GND', 0.6, 0.3)
 
 
 def near_place(bd, ref, target):
@@ -514,6 +621,10 @@ def ground_vias(bd, free):
             px, py = mm(p.GetPosition())
             if p in ep or any(p.GetNumber() == e.GetNumber() for e in ep):
                 continue
+            if not ep and any(t.Type() == pcbnew.PCB_VIA_T and t.GetNetname() == 'GND'
+                              and math.hypot(*(u - w for u, w in zip(mm(t.GetPosition()), (px, py)))) < 1.3
+                              for t in bd.b.GetTracks()):
+                continue                    # already has one (drawn with the part)
             if ep:
                 cx, cy = mm(ep[0].GetPosition())
                 bb = ep[0].GetBoundingBox()
@@ -590,6 +701,8 @@ def build():
         bd.boxes.append((min(x, c) - 0.6, y - 0.6, max(x, c) + 0.6, y + 0.6))
         bd.boxes.append((c - 0.6, min(y, d) - 0.6, c + 0.6, max(y, d) + 0.6))
 
+    rf_terminations(bd)
+
     # ---- small parts next to what they serve ----
     for ref, target in NEAR.items():
         near_place(bd, ref, target)
@@ -614,11 +727,15 @@ def build():
             for dy in (-0.8, 0.8):
                 bd.via(cx + dx, cy + dy, 'GND', 0.6, 0.3)
     rail_fanout(bd)
-    bd.text('OPEN TEM CELL - rev 0.2 CONCEPT', 0, -26, 2.4)
+    bd.text('OPEN TEM CELL - rev 0.3 CONCEPT', 0, -26, 2.4)
     bd.text('not validated', 0, -22, 1.8)
     bd.text('slide wallet in flat, from this side', -16, 12, 1.6)
     bd.text(gf.REPO, 0, 58, 1.6)
     bd.text('LCD 2.0in ST7789', 102, -2, 2.0)
+    # test points: what each one carries, on the underside next to the pad
+    for ref, label in (('TP1', 'DET'), ('TP5', '5VA'), ('TP6', 'ADC3'), ('TP2', 'VT'), ('TP3', 'MUX'), ('TP4', '3V3A')):
+        tx, ty = mm(bd.fps[ref].GetPosition())
+        bd.text(label, tx, ty + (3.0 if ty > 0 else 2.05), 0.8, pcbnew.B_SilkS, mirror=True)   # source side: under the frame ring
     bd.shape(pcbnew.F_SilkS, rect(85, -34, 120, 34), w=0.15)
     bd.text('GREEN', 92, -52, 1.6)
     bd.text('RED', 108, -52, 1.6)
@@ -767,6 +884,41 @@ def pours(bd):
     bd.zone([pcbnew.In1_Cu], rect(12.0, -106.0, 58.0, -74.0), '+3V3A', clearance=0.3)
 
 
+# Pads join the pours through 4 short spokes (easier to solder, and the paste isn't pulled away by
+# the plane), except RF grounds: a spoke adds ~0.5-1 nH, which the RF ICs, the pad and termination
+# shunts and their decoupling can't take.
+THERMAL_GAP, THERMAL_SPOKE = 0.25, 0.3
+SOLID_GND = {'U2', 'U3', 'J1', 'J2', 'J5', 'R2', 'R4', 'R7', 'R10', 'R21', 'R23', 'R24',
+             'C10', 'C11', 'C12', 'C14', 'C15', 'C16', 'C17', 'C18', 'C19', 'C20', 'C22',
+             'C24', 'C25', 'C26', 'C27',
+             'Y1', 'U5', 'C8', 'C28'}      # no room for 2 spokes between the tracks (DRC starved_thermal)
+SOLID_PADS = {('U1', '23')}
+
+
+def thermals(b):
+    for z in b.Zones():
+        if not z.GetIsRuleArea():
+            z.SetPadConnection(pcbnew.ZONE_CONNECTION_THERMAL)
+            z.SetThermalReliefGap(FromMM(THERMAL_GAP))
+            z.SetThermalReliefSpokeWidth(FromMM(THERMAL_SPOKE))
+    n = 0
+    for fp in b.GetFootprints():
+        for pad in fp.Pads():
+            if fp.GetReference() in SOLID_GND or (fp.GetReference(), pad.GetNumber()) in SOLID_PADS:
+                pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
+                n += 1
+    return n
+
+
+def apply_thermals(path):
+    """Thermal reliefs on an existing board, without re-routing it."""
+    b = pcbnew.LoadBoard(path)
+    print('solid pads', thermals(b))
+    b.BuildConnectivity()
+    pcbnew.ZONE_FILLER(b).Fill(b.Zones())
+    b.Save(path)
+
+
 def fill(path):
     b = pcbnew.LoadBoard(path)
     b.BuildConnectivity()
@@ -810,16 +962,56 @@ def fill(path):
         b.BuildConnectivity()
         pcbnew.ZONE_FILLER(b).Fill(b.Zones())
     b.Save(path)
+    unstarve(path)
+
+
+def unstarve(path):
+    """Thermal pads whose spokes the router blocked (DRC starved_thermal) go back to a solid connection."""
+    import json
+    rep = path + '.drc.json'
+    subprocess.run(['kicad-cli', 'pcb', 'drc', '--format', 'json', '--severity-error', '-o', rep, path],
+                   check=True, capture_output=True, env=KICAD_ENV)
+    want = set()
+    for v in json.load(open(rep)).get('violations', []):
+        if v.get('type') != 'starved_thermal':
+            continue
+        for it in v.get('items', []):
+            m = re.match(r'(?:PTH )?[Pp]ad (\S+) \[GND\] of (\S+)', it.get('description', ''))
+            if m:
+                want.add((m.group(2), m.group(1)))
+    os.unlink(rep)
+    if not want:
+        return
+    b = pcbnew.LoadBoard(path)
+    for fp in b.GetFootprints():
+        for pad in fp.Pads():
+            if (fp.GetReference(), pad.GetNumber()) in want:
+                pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
+    b.BuildConnectivity()
+    pcbnew.ZONE_FILLER(b).Fill(b.Zones())
+    b.Save(path)
+    print('solid (no room for spokes):', ' '.join('%s.%s' % w for w in sorted(want)))
 
 
 def main():
     if sys.argv[1:2] == ['--fill']:
         fill(sys.argv[2])
         return
+    if sys.argv[1:2] == ['--thermals']:
+        apply_thermals(sys.argv[2])
+        unstarve(sys.argv[2])
+        return
+    if sys.argv[1:2] == ['--unstarve']:
+        unstarve(sys.argv[2])
+        return
     bd = build()
     path = os.environ.get('LID_PCB_OUT', os.path.join(PRJ, NAME + '.kicad_pcb'))
     if '--no-route' not in sys.argv:
         route(bd)
+        # the hand-drawn RF nets are complete: anything the router added on them is a redundant stub
+        for t in list(bd.b.GetTracks()):
+            if not t.IsLocked() and t.GetNetname().lstrip('/') in RF_NETS:
+                bd.b.Remove(t)
     free = Free(bd)
     fence(bd, free)
     ground_vias(bd, free)
@@ -828,6 +1020,7 @@ def main():
     # the router works to 0.15 mm and rounds a hair under it on diagonals
     bd.b.GetDesignSettings().m_NetSettings.GetDefaultNetclass().SetClearance(FromMM(0.14))
     pours(bd)
+    thermals(bd.b)
     bd.b.Save(path)
     subprocess.run([sys.executable, os.path.abspath(__file__), '--fill', path], check=True)
     print('wrote', path)

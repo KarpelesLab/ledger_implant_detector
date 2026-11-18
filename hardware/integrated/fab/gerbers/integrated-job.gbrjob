@@ -5,13 +5,13 @@
       "Application": "Pcbnew",
       "Version": "10.0.3"
     },
-    "CreationDate": "2026-11-13T15:40:27+09:00"
+    "CreationDate": "2026-11-17T23:37:53+09:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
       "Name": "integrated",
       "GUID": "696e7465-6772-4617-9465-642e6b696361",
-      "Revision": "0.2"
+      "Revision": "0.3"
     },
     "Size": {
       "X": 200.1,

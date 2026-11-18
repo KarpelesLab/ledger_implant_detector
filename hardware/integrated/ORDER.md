@@ -1,7 +1,14 @@
-# Ordering the integrated TEM cell from JLCPCB (rev 0.2, concept)
+# Ordering the integrated TEM cell from JLCPCB (rev 0.3, concept)
 
-This board has **not been built or tested, and there is no firmware yet** (see
-[docs/rev02_integrated.md](../../docs/rev02_integrated.md)). Treat the first order as a prototype.
+The files here are **rev 0.3, not yet built**. Rev 0.2 (5 boards, 2026-11) works, but has a
+12-15 dB notch around 1.4 GHz. It was traced to the ADF4351's RFOUTA- termination, wired through
+45 mm of trace, and the AD8318's INLO decoupling, 22 mm away. Rev 0.3 places and wires those parts
+by hand at the pins (`rf_terminations()` in `tools/gen_integrated_pcb.py`), so the rest of the board
+is re-routed too. It also adds thermal reliefs on the ground pads except the RF ones, and keeps the
+U3 via off the pads. Bring-up firmware: `firmware/bringup`.
+
+**Check in JLC's preview:** J5 (U.FL) moved and turned. Confirm its signal pin still lands on the
+round pad, as you did for rev 0.2.
 
 ## Main board
 
@@ -42,3 +49,17 @@ an exact LCSC part. JLC places the underside SMD parts and solders the LEDs and 
 - Nothing metal near the cell.
 
 Keep the micro-USB reachable, and BOOTSEL as well: that is the button on the Pico.
+
+## First power-up
+
+The board's only power input is VBUS from the Pico's micro-USB (Pico pin 40), so nothing on it
+is powered before the Pico is fitted. Either fit the Pico, plug in USB and measure straight away,
+or, before fitting it, feed 5 V from a supply limited to about 200 mA into pin 40 of the Pico
+footprint (VBUS), with ground on pin 38. Expect about 3.3 V on TP4 (+3V3A) and about 5 V on TP5 (+5VA).
+
+## Known issue on the first run (2026-11 boards)
+
+JLC found U3 (AD8318) pins 1-2 (CMIP, the input ground) short of solder on all five boards: a
+ground stitching via sat across both pads and drew the solder away. The boards were shipped
+as they were. The generator and Gerbers are fixed since `bb96cfe`; on boards from that run,
+reflow pins 1-2 with flux and a fine tip.
