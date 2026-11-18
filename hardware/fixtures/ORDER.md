@@ -22,6 +22,9 @@ PCB options for every board (all JLCPCB defaults except as noted):
   sometimes asks to confirm this during review. It is intentional.
 - The **ramp** has a 3 mm wide tip tab, and the TEM base landing lines are left
   without solder mask. Both are intentional.
+- The **septum plate** and **ramp** have no silkscreen (since 2026-11-05: the
+  plate is the visible top of the integrated device's cell). If JLC asks, the
+  empty legend is intentional; "Remove order number" keeps it that way.
 
 No PCBA (assembly) is needed. The only soldered parts are the four edge-mount
 SMA jacks (two on the slot board, two on the TEM base). They take four solder

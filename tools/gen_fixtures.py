@@ -417,11 +417,7 @@ def build_tem_plate():
     for sy in (-1, 1):
         for layer in (pcbnew.F_Mask, pcbnew.B_Mask):
             bd.shape(layer, rect(-w2, min(sy * hl, sy * (hl - 4)), w2, max(sy * hl, sy * (hl - 4))), fill=True)
-    bd.text('TEM SEPTUM PLATE', 0, -10, 3.0)
-    bd.text(REV, 0, -5, 1.8)
-    bd.text('both sides are the same conductor', 0, 2, 1.6)
-    bd.text('ramps overlap the bare strips from below', 0, 6, 1.6)
-    bd.text('(copper tape + solder tacks, both faces)', 0, 9.5, 1.6)
+    # no silkscreen: the plate is the visible top of the integrated device's cell
     return bd.save()
 
 
@@ -450,10 +446,7 @@ def build_tem_ramp():
     for layer in (pcbnew.F_Mask, pcbnew.B_Mask):
         bd.shape(layer, rect(-c['w'] / 2, 0, c['w'] / 2, 4), fill=True)
         bd.shape(layer, rect(-c['tip_w'] / 2, L, c['tip_w'] / 2, L + c['tab']), fill=True)
-    bd.text('TEM RAMP', 0, 12, 3.0)
-    bd.text(REV, 0, 17, 1.6)
-    bd.text('wide edge 4 mm under the septum, tip -> landing line', 0, 21, 1.4)
-    bd.text('same tip landing marks: h15..h30', 0, 24, 1.4)
+    # no silkscreen (see the plate)
     return bd.save()
 
 
