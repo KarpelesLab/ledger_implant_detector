@@ -64,7 +64,7 @@ FIXED = {
     'J3': (111.28, 32.0, 270, 'F'), 'D1': (92.0, -45.0, 0, 'F'), 'D2': (108.0, -45.0, 0, 'F'),
     'SW1': (97.0, -66.0, 0, 'F'),
     'J4': (86.0, 60.0, 90, 'B'),
-    'TP1': (40.0, 80.0, 0, 'B'), 'TP3': (46.0, -76.0, 0, 'B'),       # TP2 (VTUNE) sits with the loop filter
+    'TP1': (40.0, 80.0, 0, 'B'),       # TP2 (VTUNE) sits with the loop filter, TP3 (MUXOUT) outside the frame
     'TP4': (52.0, -76.0, 0, 'B'), 'TP5': (46.0, 80.0, 0, 'B'), 'TP6': (52.0, 80.0, 0, 'B'),
 }
 # small parts placed next to the pad they serve: ref -> (target ref, target pad)
@@ -72,7 +72,7 @@ FIXED = {
 NEAR = {
     'R31': ('U3', '6'),
     'R27': ('U4', '4'), 'C28': ('U4', '4'), 'C29': ('U4', '5'), 'R29': ('U4', '6'), 'R30': ('U4', '6'),
-    'C30': ('U4', '6'), 'FB4': ('U4', '8'), 'C31': ('U4', '8'),
+    'C30': ('U4', '6'), 'FB4': ('C31', '1'),          # C31 itself sits at pin 8: support_parts()
     'C32': ('U5', '1'), 'C33': ('U5', '5'),
     'C34': ('U1', '36'), 'R32': ('U1', '1'), 'R33': ('U1', '2'), 'R34': ('U1', '6'),
     'R35': ('U1', '16'), 'R36': ('U1', '21'), 'R37': ('U1', '22'),
@@ -498,8 +498,8 @@ def rf_terminations(bd, rx_end):
     hand(bd, [(x14d, y14d), (x14d, c21o[1]), c21o], 'DET_HI', W50)
     gx, gy = at_net(bd, 'R24', 'GND')
     bd.via(gx + 0.9, gy, 'GND', 0.6, 0.3)
-    # Detector: INLO (pin 15) is left of the INHI line (pin 14). C22 sits straight below it; ENBL/VPOS
-    # (pin 16) steps out sideways first, to its 100 pF C25.
+    # Detector: INLO (pin 15) is left of the INHI line (pin 14). C22 sits straight below it. ENBL (pin 16)
+    # steps out sideways to a +5VA via: it needs no decoupling, its 100 pF C25 is at VPSI (support_parts())
     x14d, y14d = bd.padxy('U3', '14')
     x15d, _ = bd.padxy('U3', '15')
     x16d, _ = bd.padxy('U3', '16')
@@ -508,12 +508,10 @@ def rf_terminations(bd, rx_end):
     c22 = [mm(p.GetPosition()) for p in bd.fps['C22'].Pads() if p.GetNetname().lstrip('/') == 'DET_LO'][0]
     hand(bd, [(x15d, y14d), (x15d, c22[1])], 'DET_LO', W)
     ys = y14d + 0.56
-    place_at(bd, 'C25', x16d - 3.2, ys, False, '+5VA', (x16d, ys))
-    c25 = [mm(p.GetPosition()) for p in bd.fps['C25'].Pads() if p.GetNetname().lstrip('/') == '+5VA'][0]
-    hand(bd, [(x16d, y14d), (x16d, ys), c25], '+5VA', 0.3)
-    for ref, dx, dy in (('C22', -1.1, 0), ('C25', -1.0, 0)):
-        gx, gy = [mm(p.GetPosition()) for p in bd.fps[ref].Pads() if p.GetNetname() == 'GND'][0]
-        bd.via(gx + dx, gy + dy, 'GND', 0.6, 0.3)
+    hand(bd, [(x16d, y14d), (x16d, ys), (x16d - 2.4, ys)], '+5VA', 0.3)
+    bd.via(x16d - 2.4, ys, '+5VA', 0.6, 0.3)
+    gx, gy = at_net(bd, 'C22', 'GND')
+    bd.via(gx - 1.1, gy, 'GND', 0.6, 0.3)
 
 
 def at_net(bd, ref, net):
@@ -524,7 +522,7 @@ def at_net(bd, ref, net):
 # pads whose rail via is drawn by hand in support_parts(): rail_fanout() leaves them alone
 RAIL_HAND = {('U2', '10'), ('U2', '28'), ('U2', '32'), ('C17', '1'), ('C18', '1'), ('C19', '1'),
              ('Y1', '1'), ('Y1', '4'), ('C20', '1'), ('U3', '3'), ('U3', '4'), ('U3', '9'), ('U3', '16'), ('C24', '1'), ('C26', '1'), ('C27', '1'), ('C25', '1'),
-             ('R6', '1'), ('R6', '2'), ('C36', '1')}
+             ('R6', '1'), ('R6', '2'), ('C36', '1'), ('R5', '1'), ('R5', '2'), ('C37', '1')}
 
 
 def support_parts(bd):
@@ -617,6 +615,14 @@ def support_parts(bd):
     hand(bd, [p10, (30.6, -98.6), c17], '+3V3A', W)
     gx, gy = at_net(bd, 'C17', 'GND')
     bd.via(gx, gy + 1.0, 'GND', 0.6, 0.3)
+    # C37 (100p, 0402) in the gap between R5 and C17: R5's supply end, the RFOUTA+ pull-up, returns its RF
+    # current through it instead of into the pour, and it is pin 10's 100 pF too. It shares C17's vias
+    r5s = at_net(bd, 'R5', '+3V3A')
+    y37 = (r5s[1] + c17[1]) / 2
+    place_at(bd, 'C37', r5s[0] + 0.05, y37, False, '+3V3A', (r5s[0] + 5, y37))
+    c37s, c37g = at_net(bd, 'C37', '+3V3A'), at_net(bd, 'C37', 'GND')
+    hand(bd, [r5s, c37s, c17], '+3V3A', W)
+    hand(bd, [c37g, (c37g[0], gy)], 'GND', W)
     # ---- U2 top row: pins 28 and 32 to In1, C18/C19 just inside ----
     for pin, ref, x in (('28', 'C18', 32.5), ('32', 'C19', 30.25)):
         px, py = p(pin)
@@ -646,8 +652,8 @@ def support_parts(bd):
     bd.poly([rv, (rv[0], -90.6), (33.25, -91.35), (32.5, -91.35)], 0.4, '+3V3A', pcbnew.In1_Cu)
     r14 = at_net(bd, 'R14', 'SYN_REF')
     hand(bd, [p('29'), (p('29')[0], r14[1] + 0.6), r14], 'SYN_REF', W)
-    # ---- digital pins: fanned out by hand to vias clear of the decoupling, the router takes them on
-    # In1 from there. Left side: CLK, DATA, LE, CE; top row between and beside C18/C19: MUX, PDBRF, LD
+    # ---- digital pins: fanned out by hand to vias clear of the decoupling, then on In1 (below); the router
+    # takes them outside the frame. Left side: CLK, DATA, LE, CE; top row between and beside C18/C19: MUX, PDBRF, LD
     for pin, pts in (('1', [(29.0, -93.25), (27.6, -92.4)]), ('2', [(28.6, -93.75), (27.6, -93.4)]),
                      ('3', [(26.8, -94.25)]), ('4', [(28.4, -94.75), (27.8, -94.95)]),
                      ('30', [(31.25, -88.4), (31.05, -88.0)]), ('26', [(33.25, -86.6)]),
@@ -655,16 +661,33 @@ def support_parts(bd):
         net = bd.padnet('U2', pin).lstrip('/')
         hand(bd, [p(pin)] + pts, net, W)
         bd.via(*pts[-1], net, 0.6, 0.3)
+    # ... and the control lines on In1 from those vias to just outside the frame, locked: left to the
+    # router, three of them ran 20-30 mm on B.Cu inside the can (rev 0.3), cutting up its ground pour,
+    # and limited to In1 by a net class it left some unrouted. Columns ordered so that nothing crosses;
+    # LD and PDBRF pass left of Y1, not under it. MUXOUT runs between them to TP3, just outside the frame
+    # (probe it with the can on)
+    ye = -FRAME[2] + 2.0
+    for net, pts in (('SYN_CLK', [(27.6, -92.4), (26.4, -92.4)]), ('SYN_DATA', [(27.6, -93.4), (25.9, -93.4)]),
+                     ('SYN_LE', [(26.8, -94.25), (25.4, -94.25)]), ('SYN_CE', [(27.8, -94.95), (24.9, -94.95)]),
+                     ('SYN_PDBRF', [(33.25, -86.6), (29.5, -86.6)]),
+                     ('SYN_LD', [(34.3, -87.6), (33.95, -87.25), (29.0, -87.25)]),
+                     ('SYN_MUX', [(31.05, -88.0), (30.6, -88.55), (27.7, -88.55)])):
+        bd.poly(pts + [(pts[-1][0], ye)], W, net, pcbnew.In1_Cu)
+    bd.place('TP3', 27.7, ye + 2.0, 0, 'B')
+    bd.via(27.7, ye + 2.0, 'SYN_MUX', 0.6, 0.3)
+    bd.poly([(27.7, ye), (27.7, ye + 2.0)], W, 'SYN_MUX', pcbnew.In1_Cu)
 
     # ---- U3 ----
     q = lambda n: bd.padxy('U3', n)
-    # left: pins 3-4 (+5VA) to C24, via to the In1 pour
-    place_at(bd, 'C24', 22.7, 95.85, False, '+5VA', q('3'))
-    c24 = at_net(bd, 'C24', '+5VA')
+    # left: pins 3-4 (VPSI, +5VA) to C25 (100p) and C24 (100n) just below it, via to the In1 pour
+    place_at(bd, 'C25', 22.7, 95.85, False, '+5VA', q('3'))
+    place_at(bd, 'C24', 22.7, 97.4, False, '+5VA', (q('3')[0], 97.4))
+    c25, c24 = at_net(bd, 'C25', '+5VA'), at_net(bd, 'C24', '+5VA')
     for pin in ('3', '4'):
-        hand(bd, [q(pin), (24.5, q(pin)[1]), c24], '+5VA', W)
-    bd.via(c24[0], 94.75, '+5VA', 0.6, 0.3)
-    bd.track(c24, (c24[0], 94.75), W, '+5VA')
+        hand(bd, [q(pin), (24.5, q(pin)[1]), c25], '+5VA', W)
+    hand(bd, [c25, c24], '+5VA', W)
+    bd.via(c25[0], 94.75, '+5VA', 0.6, 0.3)
+    bd.track(c25, (c25[0], 94.75), W, '+5VA')
     # interior row: CLPF to C23, OUT/SET joined by R26
     place_at(bd, 'C23', 24.0, 93.3, False, 'DET_CLPF', q('5'))
     c23 = at_net(bd, 'C23', 'DET_CLPF')
@@ -686,20 +709,24 @@ def support_parts(bd):
     for ref in ('C26', 'C27', 'R25'):
         gx, gy = at_net(bd, ref, 'GND')
         bd.via(gx + 0.95, gy, 'GND', 0.6, 0.3)
-    for ref in ('C24', 'C23'):
+    for ref in ('C25', 'C24', 'C23'):
         gx, gy = at_net(bd, ref, 'GND')
         bd.via(gx - 1.0, gy, 'GND', 0.6, 0.3)
     # edge row: TEMP out sideways to R28, clear of the INHI line
     place_at(bd, 'R28', XR, 99.0, False, 'DET_TEMP', q('13'))
     r28 = at_net(bd, 'R28', 'DET_TEMP')
     hand(bd, [q('13'), (q('13')[0], 98.95), (28.5, r28[1]), r28], 'DET_TEMP', W)
-    c25 = at_net(bd, 'C25', '+5VA')
-    bd.via(c25[0], c25[1] - 1.1, '+5VA', 0.6, 0.3)
-    bd.track(c25, (c25[0], c25[1] - 1.1), W, '+5VA')
     # FB1 where VBUS enters the can, so VBUS stays outside it; the In1 pour carries +5VA to U3,
     # with the 10 uF bulk C35 at the chip
     place_at(bd, 'FB1', 49.0, 75.6, False, '+5VA', (40.0, 75.6))
     place_at(bd, 'C35', 18.5, 93.2, False, '+5VA', (25.0, 93.2))
+    # ADS1115: C31 at its supply pin, FB4 beyond it (rev 0.3 had 14 mm of track, through FB4, to C31).
+    # 0.8 mm of track from the pin: room for pins 7 and 9 to step aside
+    u8 = bd.padxy('U4', '8')
+    place_at(bd, 'C31', u8[0] + 2.75, u8[1], False, 'ADC_VDD', u8)
+    hand(bd, [u8, at_net(bd, 'C31', 'ADC_VDD')], 'ADC_VDD', W)
+    gx, gy = at_net(bd, 'C31', 'GND')
+    bd.via(gx + 0.95, gy, 'GND', 0.6, 0.3)
 
 
 def near_place(bd, ref, target):
@@ -768,7 +795,7 @@ class Free:
                 bb = fp.GetBoundingBox(False)
                 self.boxes.append((bb.GetLeft() / 1e6 - OX, bb.GetTop() / 1e6 - OY, bb.GetRight() / 1e6 - OX, bb.GetBottom() / 1e6 - OY, False, ''))
         for t in bd.b.GetTracks():
-            if t.GetNetname() == 'GND' and skip_gnd:
+            if t.GetNetname() == 'GND' and skip_gnd and t.Type() != pcbnew.PCB_VIA_T:     # no via on a via
                 continue
             a, c = mm(t.GetStart()), mm(t.GetEnd())
             if t.Type() == pcbnew.PCB_VIA_T:
@@ -813,6 +840,9 @@ def fence(bd, free):
             bd.via(x, sy * y, 'GND', 0.6, 0.3)
 
 
+GND_HAND = {'C37'}       # ground drawn by hand to a neighbour's via (support_parts())
+
+
 def ground_vias(bd, free):
     """QFN ground pins tie inward to the exposed pad, whose vias are already there. Other SMD ground pads get a via."""
     for ref, fp in bd.fps.items():
@@ -822,7 +852,7 @@ def ground_vias(bd, free):
             if p.GetNetname() != 'GND' or not p.IsOnLayer(pcbnew.B_Cu) or p.GetAttribute() == pcbnew.PAD_ATTRIB_PTH:
                 continue
             px, py = mm(p.GetPosition())
-            if p in ep or any(p.GetNumber() == e.GetNumber() for e in ep):
+            if p in ep or any(p.GetNumber() == e.GetNumber() for e in ep) or ref in GND_HAND:
                 continue
             if not ep and any(t.Type() == pcbnew.PCB_VIA_T and t.GetNetname() == 'GND'
                               and math.hypot(*(u - w for u, w in zip(mm(t.GetPosition()), (px, py)))) < 1.3
@@ -839,7 +869,7 @@ def ground_vias(bd, free):
             for r in (0.9, 1.1, 1.3, 1.6, 2.0, 2.5, 3.0, 3.5):
                 for k in range(16):
                     x, y = px + r * math.cos(k * math.pi / 8), py + r * math.sin(k * math.pi / 8)
-                    if free.ok(x, y, 0.5) and (r <= 1.1 or free.seg_ok((px, py), (x, y), 0.25, 'GND')):
+                    if free.ok(x, y, 0.5, on_pads=False) and (r <= 1.1 or free.seg_ok((px, py), (x, y), 0.25, 'GND')):
                         if r > 1.1:
                             bd.track((px, py), (x, y), 0.2, 'GND')
                         bd.via(x, y, 'GND', 0.6, 0.3)
@@ -939,7 +969,7 @@ def build():
     bd.text('LCD 2.0in ST7789', 102, -2, 2.0)
     # test points: what each one carries, on the underside next to the pad
     for ref, label, dx, dy in (('TP1', 'DET', 0, 3.0), ('TP5', '5VA', 0, 3.0), ('TP6', 'ADC3', 0, 3.0), ('TP2', 'VT', -2.2, 0),
-                               ('TP3', 'MUX', 0, 2.05), ('TP4', '3V3A', 0, 2.05)):    # source side: under the frame ring
+                               ('TP3', 'MUX', 0, 2.05), ('TP4', '3V3A', 0, 2.05)):    # TP4: under the frame ring
         tx, ty = mm(bd.fps[ref].GetPosition())
         bd.text(label, tx + dx, ty + dy, 1.0, pcbnew.B_SilkS, mirror=True)
     bd.shape(pcbnew.F_SilkS, rect(85, -34, 120, 34), w=0.15)
@@ -1028,7 +1058,7 @@ def shield_frames(bd, free):
                 x, y = a[0] + (c[0] - a[0]) * i / max(n, 1), a[1] + (c[1] - a[1]) * i / max(n, 1)
                 if abs(y) > 105 and abs(x) < 5:     # the landing line and the SMA pad are on the floor here
                     continue
-                if free.ok(x, y, 0.5):
+                if free.ok(x, y, 0.5, on_pads=False):
                     bd.via(x, y, 'GND', 0.6, 0.3)
         bd.shape(pcbnew.B_Mask, rect(x0 - 0.6, y0 - 0.6, x1 + 0.6, y0 + 0.6), fill=True)
         bd.shape(pcbnew.B_Mask, rect(x0 - 0.6, y1 - 0.6, x1 + 0.6, y1 + 0.6), fill=True)
@@ -1138,6 +1168,30 @@ def route(bd):
     os.unlink(ses)
 
 
+def trim_columns(b):
+    """The router may join a hand-drawn In1 control line partway down instead of at its end (outside
+    the frame): cut the column back to the lowest join, so no stub is left hanging."""
+    ye = -FRAME[2] + 2.0
+    for t in list(b.GetTracks()):
+        if t.Type() == pcbnew.PCB_VIA_T or not t.IsLocked() or t.GetLayer() != pcbnew.In1_Cu:
+            continue
+        (ax, ay), (cx, cy) = mm(t.GetStart()), mm(t.GetEnd())
+        if abs(ax - cx) > 1e-3 or abs(max(ay, cy) - ye) > 1e-3:
+            continue
+        top = min(ay, cy)
+        joins = [y for u in b.GetTracks() if u.m_Uuid != t.m_Uuid and u.GetNetCode() == t.GetNetCode() and u.GetLayer() == pcbnew.In1_Cu
+                 for x, y in (mm(u.GetStart()), mm(u.GetEnd())) if abs(x - ax) < 1e-3 and top - 1e-3 <= y <= ye + 1e-3]
+        joins += [mm(v.GetPosition())[1] for v in b.GetTracks() if v.Type() == pcbnew.PCB_VIA_T and v.GetNetCode() == t.GetNetCode()
+                  and abs(mm(v.GetPosition())[0] - ax) < 1e-3 and top - 1e-3 <= mm(v.GetPosition())[1] <= ye + 1e-3]
+        end = max(joins) if joins else ye
+        if end < ye - 1e-3:
+            if ay > cy:
+                t.SetStart(P(ax, end))
+            else:
+                t.SetEnd(P(cx, end))
+            print('trimmed %s to y %.2f' % (t.GetNetname(), end))
+
+
 def rf_neighbours(bd, gap=1.0):
     """Router tracks on B.Cu running within `gap` mm of the hand-drawn RF lines (the 50 ohm chains and the
     U2/U3 RF pins): printed, so that a coupling path like rev 0.3's SYN_TEMP along RFOUTA+ shows up."""
@@ -1203,7 +1257,7 @@ def rf_pour_gap(bd):
 THERMAL_GAP, THERMAL_SPOKE = 0.25, 0.3
 SOLID_GND = {'U2', 'U3', 'J1', 'J2', 'J5', 'R2', 'R4', 'R7', 'R10', 'R21', 'R23', 'R24',
              'C10', 'C11', 'C12', 'C14', 'C15', 'C16', 'C17', 'C18', 'C19', 'C20', 'C22',
-             'C24', 'C25', 'C26', 'C27', 'C36',
+             'C24', 'C25', 'C26', 'C27', 'C36', 'C37',
              'Y1', 'U5', 'C8', 'C28'}      # no room for 2 spokes between the tracks (DRC starved_thermal)
 SOLID_PADS = {('U1', '23')}
 
@@ -1232,11 +1286,15 @@ def apply_thermals(path):
     b.Save(path)
 
 
+ISLAND_AREA = 40.0
+
+
 def fill(path):
     b = pcbnew.LoadBoard(path)
     b.BuildConnectivity()
     pcbnew.ZONE_FILLER(b).Fill(b.Zones())
-    # a GND pour island with no way down gets a via of its own
+    # every GND pour island gets a way down, and the large ones one via per ISLAND_AREA mm2 (rev 0.3 had
+    # 100-200 mm2 islands round the Pico hanging on a single via)
     hold = type('Hold', (), {'b': b})()
     free = Free(hold)
     added = 0
@@ -1248,27 +1306,34 @@ def fill(path):
         for layer in z.GetLayerSet().Seq():
             polys = z.GetFilledPolysList(layer)
             for i in range(polys.OutlineCount()):
-                if any(polys.Contains(v.GetPosition(), i) for v in vias) or any(polys.Contains(p.GetPosition(), i) for p in pads):
+                have = [v.GetPosition() for v in vias if polys.Contains(v.GetPosition(), i)] + \
+                       [p.GetPosition() for p in pads if polys.Contains(p.GetPosition(), i)]
+                area = polys.Outline(i).Area() / 1e12
+                want = max(1, int(area / ISLAND_AREA)) if area < 1000 else 1      # the main pours have the stitching grid
+                if len(have) >= want:
                     continue
                 bb = polys.Outline(i).BBox()
-                done = False
-                for x in range(bb.GetLeft(), bb.GetRight(), 50000):
-                    for y in range(bb.GetTop(), bb.GetBottom(), 50000):
-                        if polys.Contains(VECTOR2I(x, y), i) and free.ok(x / 1e6 - OX, y / 1e6 - OY, 0.46):
-                            v = pcbnew.PCB_VIA(b)
-                            v.SetPosition(VECTOR2I(x, y))
-                            v.SetDrill(FromMM(0.3))
-                            v.SetWidth(pcbnew.F_Cu, FromMM(0.6))
-                            v.SetNet(z.GetNet())
-                            b.Add(v)
-                            vias.append(v)
-                            free.add(x / 1e6 - OX, y / 1e6 - OY)
-                            added += 1
-                            done = True
-                            break
-                    if done:
+                pts = [VECTOR2I(x, y) for x in range(bb.GetLeft(), bb.GetRight(), 250000)
+                       for y in range(bb.GetTop(), bb.GetBottom(), 250000)]
+                pts = [q for q in pts if polys.Contains(q, i) and free.ok(q.x / 1e6 - OX, q.y / 1e6 - OY, 0.46, on_pads=False)]
+                while len(have) < want and pts:
+                    # the free spot farthest from every via the island has
+                    far = lambda q: min([math.hypot(q.x - h.x, q.y - h.y) for h in have] or [0])
+                    q = max(pts, key=far) if have else pts[len(pts) // 2]
+                    if have and far(q) < 3e6:
                         break
-                if not done:
+                    v = pcbnew.PCB_VIA(b)
+                    v.SetPosition(q)
+                    v.SetDrill(FromMM(0.3))
+                    v.SetWidth(pcbnew.F_Cu, FromMM(0.6))
+                    v.SetNet(z.GetNet())
+                    b.Add(v)
+                    vias.append(v)
+                    have.append(q)
+                    free.add(q.x / 1e6 - OX, q.y / 1e6 - OY)
+                    pts = [r for r in pts if free.ok(r.x / 1e6 - OX, r.y / 1e6 - OY, 0.46, on_pads=False)]
+                    added += 1
+                if not have:
                     print('GND island with no room for a via on', b.GetLayerName(layer), bb.GetCenter().x / 1e6 - OX, bb.GetCenter().y / 1e6 - OY)
     if added:
         print('island vias', added)
@@ -1306,6 +1371,53 @@ def unstarve(path):
     print('solid (no room for spokes):', ' '.join('%s.%s' % w for w in sorted(want)))
 
 
+# JLC04161H-7628: 1 oz outer, 0.5 oz inner, 0.2104 mm 7628 prepreg (the 50 ohm lines on B.Cu see In2
+# through it), 1.065 mm core. Written into the board so that KiCad and the gerber job file carry it
+STACKUP = """		(stackup
+			(layer "F.SilkS" (type "Top Silk Screen"))
+			(layer "F.Paste" (type "Top Solder Paste"))
+			(layer "F.Mask" (type "Top Solder Mask") (thickness 0.01))
+			(layer "F.Cu" (type "copper") (thickness 0.035))
+			(layer "dielectric 1" (type "prepreg") (thickness 0.2104) (material "7628") (epsilon_r 4.4) (loss_tangent 0.02))
+			(layer "In1.Cu" (type "copper") (thickness 0.0152))
+			(layer "dielectric 2" (type "core") (thickness 1.065) (material "FR4") (epsilon_r 4.6) (loss_tangent 0.02))
+			(layer "In2.Cu" (type "copper") (thickness 0.0152))
+			(layer "dielectric 3" (type "prepreg") (thickness 0.2104) (material "7628") (epsilon_r 4.4) (loss_tangent 0.02))
+			(layer "B.Cu" (type "copper") (thickness 0.035))
+			(layer "B.Mask" (type "Bottom Solder Mask") (thickness 0.01))
+			(layer "B.Paste" (type "Bottom Solder Paste"))
+			(layer "B.SilkS" (type "Bottom Silk Screen"))
+			(copper_finish "HAL lead-free")
+			(dielectric_constraints no)
+		)
+"""
+
+
+def add_stackup(path):
+    t = open(path).read()
+    if '(stackup' not in t:
+        t = t.replace('\t(setup\n', '\t(setup\n' + STACKUP, 1)
+        open(path, 'w').write(t)
+
+
+SILK_MIN = 0.15
+
+# C37 (0402) sits between R5 and C17 with 0.6 and 0.3 mm between pads, inside their courtyards' 0.25 mm margins
+DRU = """(version 1)
+(rule "C37 between R5 and C17"
+  (condition "A.Reference == 'C37'")
+  (constraint courtyard_clearance (min -0.6mm)))
+"""
+
+
+def silk_widths(b):
+    """Footprint silk lines up to JLC's 0.15 mm minimum (the KiCad library draws them at 0.12)."""
+    for fp in b.GetFootprints():
+        for g in fp.GraphicalItems():
+            if g.GetLayer() in (pcbnew.F_SilkS, pcbnew.B_SilkS) and g.GetClass() != 'PCB_TEXT' and 0 < g.GetWidth() < FromMM(SILK_MIN):
+                g.SetWidth(FromMM(SILK_MIN))
+
+
 def main():
     if sys.argv[1:2] == ['--fill']:
         fill(sys.argv[2])
@@ -1325,6 +1437,7 @@ def main():
         for t in list(bd.b.GetTracks()):
             if not t.IsLocked() and t.GetNetname().lstrip('/') in RF_NETS:
                 bd.b.Remove(t)
+        trim_columns(bd.b)
         rf_neighbours(bd)
     free = Free(bd)
     fence(bd, free)
@@ -1335,7 +1448,11 @@ def main():
     bd.b.GetDesignSettings().m_NetSettings.GetDefaultNetclass().SetClearance(FromMM(0.14))
     pours(bd)
     thermals(bd.b)
+    silk_widths(bd.b)
     bd.b.Save(path)
+    add_stackup(path)
+    with open(os.path.splitext(path)[0] + '.kicad_dru', 'w') as f:
+        f.write(DRU)
     subprocess.run([sys.executable, os.path.abspath(__file__), '--fill', path], check=True)
     print('wrote', path)
 
@@ -1360,7 +1477,7 @@ def jlc_files(fab):
              '330': ('RC0603FR-07330RL', 'C105881'), '33': ('0603WAF330JT5E', 'C23140'), '150': ('0603WAF1500T5E', 'C22808'),
              '39': ('0603WAF390JT5E', 'C23154'), '499': ('RC0603FR-07499RL', 'C137714'), '1k': ('0603WAF1001T5E', 'C21190'),
              '100k': ('0603WAF1003T5E', 'C25803'), '4.7k': ('0603WAF4701T5E', 'C23162'), '10k': ('0603WAF1002T5E', 'C25804'),
-             '47': ('0603WAF470JT5E', 'C23182'), '100p': ('CC0603JRNPO0BN101', 'C107033'), '220p': ('GCM1885C2A221JA16D', 'C388907'),
+             '47': ('0603WAF470JT5E', 'C23182'), '100p': ('CC0603JRNPO0BN101', 'C107033'), '100p@0402': ('0402CG101J500NT', 'C1546'), '220p': ('GCM1885C2A221JA16D', 'C388907'),
              '680p': ('CC0603JRNPO9BN681', 'C107055'), '1n': ('CL10C102JB8NNNC', 'C163508'), '1.5n': ('CGA0603C0G152J500JT', 'C36911403'),
              '10n': ('0603B103K500NT', 'C57112'), '15n': ('CC0603KRX7R9BB153', 'C107076'), '100n': ('CC0603KRX7R9BB104', 'C14663'),
              '4.7u': ('CL21A475KBQNNNE', 'C98192'), '10u': ('CL21A106KAYNNNE', 'C15850'), '600R': ('GZ1608D601TF', 'C1002'),
@@ -1379,7 +1496,8 @@ def jlc_files(fab):
                 if refs:
                     r['Designator'] = ','.join(refs)
                     if 'Comment' in r:
-                        r['Comment'], r['LCSC Part #'] = parts[r['Comment']]
+                        key = r['Comment'] + ('@0402' if '0402' in r.get('Footprint', '') else '')
+                        r['Comment'], r['LCSC Part #'] = parts[key]
                     w.writerow(r)
 
 

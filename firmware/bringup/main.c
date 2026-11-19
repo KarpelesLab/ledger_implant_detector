@@ -40,14 +40,14 @@ static void lcd_status(void) {
     char s[40];
     double vb = 0, vd = 0, vt = 0;
     if (ads_ok) {
-        ads1115_mean(ADC_CH_VBUS, 1, &vb, 0);
+        ads1115_mean(ADC_CH_5VA, 1, &vb, 0);
         ads1115_mean(ADC_CH_DET, 2, &vd, 0);
         ads1115_mean(ADC_CH_DETTEMP, 1, &vt, 0);
     }
-    lcd_text(8, 8, "LID REV0.2 BRINGUP", 2, C_WHITE, C_BLACK);
+    lcd_text(8, 8, "LID BRINGUP R0.2-3", 2, C_WHITE, C_BLACK);
     snprintf(s, sizeof s, "ADC   %-10s", ads_ok ? "OK" : "NO ANSWER");
     lcd_text(8, 48, s, 2, ads_ok ? C_GREEN : C_RED, C_BLACK);
-    snprintf(s, sizeof s, "VBUS  %.2f V   ", 2 * vb);
+    snprintf(s, sizeof s, "5VA   %.2f V   ", 2 * vb);
     lcd_text(8, 72, s, 2, C_WHITE, C_BLACK);
     snprintf(s, sizeof s, "DET   %.4f V  ", vd);
     lcd_text(8, 96, s, 2, C_WHITE, C_BLACK);
@@ -74,7 +74,7 @@ static void cmd_status(void) {
         for (int ch = 0; ch < 4; ch++) ads1115_mean(ch, 8, &v[ch], ch == 0 ? &sd : 0);
         printf("det %.5f V sd %.5f V\n", v[0], sd);
         printf("det_temp %.4f V ~%.1f C\n", v[1], det_temp(v[1]));
-        printf("vbus %.3f V\n", 2 * v[2]);
+        printf("5va %.3f V\n", 2 * v[2]);
         printf("adc3 %.4f V\n", v[3]);
     }
     printf("mcu_temp %.1f C\n", mcu_temp());

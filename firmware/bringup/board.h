@@ -1,4 +1,4 @@
-// Rev 0.2 integrated board: Pico pin map (tools/gen_integrated_sch.py, docs/rev02_integrated.md)
+// Rev 0.2 / 0.3 integrated board: Pico pin map, the same on both (tools/gen_integrated_sch.py, docs/rev02_integrated.md)
 #pragma once
 
 #define PIN_I2C_SDA     0   // ADS1115 at 0x48, 4.7k pull-ups
@@ -24,7 +24,7 @@
 #define ADS1115_ADDR    0x48
 #define ADC_CH_DET      0   // AD8318 VOUT through 1k / 10n
 #define ADC_CH_DETTEMP  1   // AD8318 TEMP
-#define ADC_CH_VBUS     2   // +5VA / 2
+#define ADC_CH_5VA      2   // +5VA / 2 (after FB1, not VBUS)
 #define ADC_CH_SPARE    3   // J4 pin 10, TP6
 
 #define SYN_REF_HZ      25000000u

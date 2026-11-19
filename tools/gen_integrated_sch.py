@@ -15,6 +15,7 @@ NAME = 'integrated'
 R0603 = 'Resistor_SMD:R_0603_1608Metric'
 C0603 = 'Capacitor_SMD:C_0603_1608Metric'
 C0805 = 'Capacitor_SMD:C_0805_2012Metric'
+C0402 = 'Capacitor_SMD:C_0402_1005Metric'
 L0603 = 'Inductor_SMD:L_0603_1608Metric'
 SMA = 'Connector_Coaxial:SMA_Samtec_SMA-J-P-H-ST-EM1_EdgeMount'
 TP = 'TestPoint:TestPoint_Pad_D1.5mm'
@@ -68,6 +69,8 @@ def gen():
     C('C6', '100p', 60, 114, 'RFB_N', 'RFB_T', fields={'Dielectric': 'C0G'})
     R('R10', '49.9', 60, 121, 'RFB_T', 'GND')
     C('C36', '100p', 60, 128, '+3V3A', 'GND', fields={'Dielectric': 'C0G'})     # at R6's supply end (rev 0.3)
+    # at R5's supply end, and pin 10's 100 pF: 0402, the only size that fits between R5 and C17 (rev 0.3)
+    C('C37', '100p', 60, 135, '+3V3A', 'GND', fp=C0402, fields={'Dielectric': 'C0G'})
     sch.add('J5', 'Connector:Conn_Coaxial', 'U.FL', 95, 100, {'1': 'RFB_OUT', '2': 'GND'},
             footprint='Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical', fields={'MPN': 'U.FL-R-SMT-1(80)', 'LCSC': 'C88374'})
 
@@ -192,7 +195,9 @@ def gen():
 def project_files():
     pro = os.path.join(PRJ, NAME + '.kicad_pro')
     if not os.path.exists(pro):
-        # the stock Pico and ITR8307 symbols call their ground pins power/emitter outputs, which ERC reports as shorts
+        # the stock ITR8307 symbol (rev 0.1) calls its emitter a power output. This doesn't cover the Pico's
+        # GND/AGND pair (both power outputs): KiCad takes that error from its pin map, not from this setting,
+        # so ERC keeps one accepted error there
         with open(pro, 'w') as f:
             json.dump({'meta': {'filename': NAME + '.kicad_pro', 'version': 3},
                        'erc': {'rule_severities': {'pin_to_pin': 'warning'}},

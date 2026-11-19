@@ -266,9 +266,11 @@ steps are in [hardware/integrated/ORDER.md](../hardware/integrated/ORDER.md).
 | ![top](img/integrated_top.png) | ![underside](img/integrated_bottom.png) |
 
 Check status (`hardware/integrated/fab/*_report.txt`): DRC 0 errors, 0 unconnected, schematic
-parity OK. What remains are silkscreen warnings and the landing lines' open ends, which are
-intentional. ERC shows 1 error: the Pico symbol's GND and AGND pins are both power outputs, and
-they are meant to be joined. These checks prove the layout matches the schematic, not that the
+parity OK. What remains are silkscreen warnings, the landing lines' open ends (intentional) and
+U2/U3's footprints, which KiCad reports as modified because of their paste windows (on purpose).
+`integrated.kicad_dru` lets C37's courtyard overlap its neighbours'. ERC shows 1 error: the Pico symbol's GND and AGND pins are both power outputs, and
+they are meant to be joined. KiCad takes that severity from its pin map, so the project's
+`pin_to_pin` setting doesn't silence it. These checks prove the layout matches the schematic, not that the
 circuit works. Rev 0.2 has been built and its blocks work with `firmware/bringup`; rev 0.3 has
 not been built.
 
@@ -290,8 +292,9 @@ clean one; 2.1.0 was used. Treat the committed `.kicad_pcb` as the source of tru
 
 ADS1115 inputs: AIN0 detector, AIN1 detector temperature, AIN2 +5VA / 2 (after FB1, so it sees the supply U3 gets), AIN3 spare on J4.
 
-**Loop filter:** R12 510 ohm, C7 1.5 nF, C8 15 nF, R13 330 ohm, C9 680 pF, calculated for about
-63 kHz and 50 degrees at 2.5 mA charge pump, 40 MHz/V, N = 124. Program the 2.5 mA setting in
+**Loop filter:** R12 510 ohm, C7 1.5 nF, C8 15 nF, R13 330 ohm, C9 680 pF: about 57 kHz and 46
+degrees phase margin at 2.5 mA charge pump, 40 MHz/V, N = 124, and 43-75 kHz, 44-46 degrees over
+N = 88-176 (recalculated in the 2026-11-19 review; the first estimate said 63 kHz and 50 degrees). Program the 2.5 mA setting in
 firmware. Phase noise doesn't matter here, so this only has to lock cleanly. Check it with
 ADIsimPLL if the lock is slow or unstable.
 
@@ -324,8 +327,10 @@ ADIsimPLL if the lock is slow or unstable.
   SMA pad is 2.8 mm.
 - The analog 3.3 V rail is a pour on In1 inside the source block, +5VA one inside the detector
   block, and the ADC runs from the Pico's 3.3 V through a ferrite bead.
-- Signals between the MCU and each RF block run on In1 and enter on the underside. If digital
-  noise reaches the detector, the shield frames are the first thing to try.
+- Signals between the MCU and each RF block cross the shield frames on In1. The synthesizer's
+  control lines run on locked In1 tracks from U2's fan-out vias to just outside the source
+  frame, so none of them runs on B.Cu inside the can. If
+  digital noise reaches the detector, the shield frames are the first thing to try.
 
 ## Rev 0.3: layout fixes
 
@@ -335,13 +340,15 @@ shows no deep notch. Rev 0.2 left the small parts round U2 and U3 to a greedy pl
 clear of the chips for the router. They landed 7-35 mm from their pins, and the router wired RFOUTA-
 through 45 mm to its pull-up and termination, and INLO through 22 mm to its decoupling. Both stubs
 are long enough to resonate in the band, so they are the main suspect. The J5 test (driving the
-cell from output B) should confirm it. Rev 0.3 changes only the layout, except for two added capacitors
-(C35, C36):
+cell from output B) should confirm it. Rev 0.3 changes only the layout, except for three added
+capacitors (C35, C36, C37) and C25 moved from ENBL to VPSI:
 
 - **RF terminations at the pins** (`rf_terminations()`): RFOUTA+/- and RFOUTB+/- leave straight from
   the pins and turn at three depths, so nothing crosses. RFOUTA- reaches C4 in 4.5 mm (6 mm of copper
   with the branch to its pull-up R6), and R6's supply end has its own 100 pF (C36) and via. RFOUTA+ is
-  the 50 ohm line itself, with R5 on a 1 mm branch. RFB+/- are 17-18 mm, only used through J5. On the
+  the 50 ohm line itself, with R5 on a 1 mm branch; R5 carries about half that output's RF current,
+  and its supply end has a 100 pF too (C37, 0402, the only size that fits between R5 and C17), so
+  the current returns there instead of going into the +3V3A pour. RFB+/- are 17-18 mm, only used through J5. On the
   detector, the 50 ohm line runs to R24 (the input's 50 ohm shunt) and C21 stands on it right below
   INHI: 2.6 mm of DET_HI past the shunt, against 12 mm in the first rev 0.3 layout. INLO's C22 sits
   straight below its pin.
@@ -350,22 +357,31 @@ cell from output B) should confirm it. Rev 0.3 changes only the layout, except f
   track each. The loop filter is a short spine at CP (pin 7). VTUNE drops to In1 at pin 20 and runs
   under the chip between the exposed pad vias, about 10 mm and buried between ground planes. TP2
   sits next to the loop filter on a short In1 branch. Y1 is turned to face REFIN, with R14 at its
-  output. Every detector part is within 2 mm of its pin.
+  output. Every detector capacitor is within 2.4 mm of its pin (pad centre to pin centre). AD8318's
+  input supply VPSI (pins 3-4) has C25 (100p) and C24 (100n); C25 used to sit on ENBL (pin 16), which
+  needs no decoupling and now goes straight to a +5VA via. The ADS1115's C31 is 2 mm from its supply
+  pin, with FB4 beyond it (it was 14 mm of track, through FB4).
 - **+5VA is a pour on In1** under the detector, like +3V3A under the source. FB1 moved from the Pico
-  to where VBUS enters the detector frame, so VBUS stays outside the can, and a new 10 uF bulk
+  to where VBUS enters the detector frame (VBUS crosses the frame on In1 and runs about 5 mm on B.Cu
+  to FB1, just inside it), and a new 10 uF bulk
   capacitor (C35) sits at U3. Rev 0.2 ran +5VA 179 mm from the Pico, between
   C21's pads and along the INHI line.
 - **The router is kept out of** the gap between the two pads of every small part, and In1 under
   both chips. A keepout along the 50 ohm chains stalled the router, so instead the generator
   lists any track within 1 mm of the hand-drawn RF lines (on the committed board, only DET_TEMP
   for 0.5 mm at U3).
-  U2's digital pins are fanned out by hand to vias, and Y1's rail has a locked In1 track to U2,
-  so the digital lines can't cut it off from the +3V3A pour.
+  U2's digital pins are fanned out by hand to vias, and from there run on locked In1 tracks to
+  just outside the source frame (left of Y1, not under it), so none of them runs on B.Cu inside the
+  can. MUXOUT ends at TP3, now outside the frame, so it can be probed with the can fitted. Y1's
+  rail has a locked In1 track to U2, so the digital lines can't cut it off from the +3V3A pour.
 - **Ground:** three more vias round each cell feed via. Exposed-pad vias sit in a cross between 4
   paste windows (about 50 % of the pad) instead of inside them, so they don't wick the solder away.
   Y1 has its own ground via under its ground pad, and the router keeps 1.5 mm off Y1. The B.Cu
   ground pour stays 0.5 mm off the 50 ohm lines, so they stay microstrip rather than coplanar. Ground
-  pads get thermal reliefs for hand soldering, except the RF ones.
+  pads get thermal reliefs for hand soldering, except the RF ones. Generated ground vias keep 0.2 mm
+  off every pad (three sat partly on pads), and pour islands get a via per 40 mm2.
+- **Board file:** the JLC04161H-7628 stack-up is in the board setup (and so in the gerber job
+  file), and footprint silkscreen lines are 0.15 mm, JLC's minimum.
 
 Two independent reviews (agents, 2026-11-18) checked the copper. The first, on the board with only
 the RF terminations fixed, found the problems behind the other points. The second, on this layout,
@@ -375,17 +391,23 @@ found RFOUTA- still 8.8 mm and the INHI shunt R24 12 mm from its pin, Y1 with on
 away, thin exposed-pad paste and the ground pour 0.3 mm from the 50 ohm lines; all are fixed above.
 It also raised a possible cause rev 0.3 doesn't remove: each analog rail pour on In1 is 46 x 32 mm
 and could resonate near 1.5 GHz (estimate, not modelled). Rev 0.2 has the +3V3A one too, so it can
-be tested there: 100 pF from R5/R6's +3V3A pads to ground, and see whether the notch moves. What
-remains, accepted:
+be tested there: 100 pF from R5/R6's +3V3A pads to ground, and see whether the notch moves. A fourth
+(2026-11-19) found nothing that had to change before ordering. It found the 100 pF on ENBL instead
+of VPSI, three generated vias partly on pads, C31 14 mm from the ADS1115, the control lines on B.Cu
+in the source can, and R5's supply end still without a 100 pF, and corrected several numbers in
+these notes; all are fixed above. What remains, accepted:
 
-- VTUNE is about 17 mm from pin 20 to the filter, buried on In1 under U2, with TP2 on a 6.5 mm stub.
+- VTUNE is about 17 mm from pin 20 to the filter, buried on In1 under U2, with TP2 on a 4.8 mm stub.
 - C11 (VCOM) is 6 mm and C14 (VP) 5 mm from their pins; every other U2/U3 capacitor is within 3 mm.
 - The nearest ground vias to each cell feed via are 2.9 mm away. The landing line's 1 mm coplanar
   gap doesn't allow closer ones.
 - MUXOUT runs 0.3 mm beside REFIN for about 4.5 mm between C18 and C19. It is set to digital lock
   detect, so it doesn't toggle once locked.
-- R5 (RFOUTA+ pull-up) has no 100 pF of its own: there is no room between the 50 ohm line and the
-  loop filter. Its supply via is 0.6 mm away, with C17 about 2.5 mm beyond it.
+- U2's pins 28 (DVDD) and 32 (SDVDD) have one capacitor each, 100n (C18) and 100p (C19), 2.25 mm
+  apart on the same In1 pour; pin 10 has C17 (100n) and C37 (100p). The top row has no room for a
+  second capacitor at each pin, and rev 0.2 locks with this.
+- TP2, TP4 and J5 are inside the source frame, TP1, TP5 and TP6 inside the detector one: probe them
+  before fitting the cans.
 - RFB+ passes 0.3 mm from the RFOUTA- termination; its pull-up R8 is 15 mm from the pin. Output B
   is off in normal use.
 - DET_TEMP runs 0.38 mm beside INHI for 0.5 mm at U3, and the +5VA escape 0.4 mm beside INLO for 1.7 mm.

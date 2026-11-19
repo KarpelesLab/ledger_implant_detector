@@ -1,23 +1,14 @@
 ** Drc report for integrated.kicad_pcb **
-** Created on 2026-11-19T14:33:40 **
+** Created on 2026-11-19T16:41:42 **
 ** Report includes: Errors, Warnings **
 
-** Found 23 DRC violations **
+** Found 20 DRC violations **
 [track_dangling]: Track has unconnected end
     Local override; warning
     @(150.0000 mm, 56.1965 mm): Track [/CELL_P1] on F.Cu, length 11.5965 mm
 [track_dangling]: Track has unconnected end
     Local override; warning
     @(150.0000 mm, 243.8035 mm): Track [/CELL_P2] on F.Cu, length 11.5965 mm
-[via_dangling]: Via is not connected or connected on only one layer
-    Local override; warning
-    @(177.6000 mm, 57.6000 mm): Via [/SYN_CLK] on F.Cu - B.Cu
-[via_dangling]: Via is not connected or connected on only one layer
-    Local override; warning
-    @(177.6000 mm, 56.6000 mm): Via [/SYN_DATA] on F.Cu - B.Cu
-[via_dangling]: Via is not connected or connected on only one layer
-    Local override; warning
-    @(184.3000 mm, 62.4000 mm): Via [/SYN_LD] on F.Cu - B.Cu
 [silk_edge_clearance]: Silkscreen clipped by board edge
     Rule: board setup constraints silk; warning
     @(280.0000 mm, 46.0000 mm): Segment on Edge.Cuts
