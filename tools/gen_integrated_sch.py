@@ -67,6 +67,7 @@ def gen():
     C('C5', '100p', 60, 107, 'RFB_P', 'RFB_OUT', fields={'Dielectric': 'C0G'})
     C('C6', '100p', 60, 114, 'RFB_N', 'RFB_T', fields={'Dielectric': 'C0G'})
     R('R10', '49.9', 60, 121, 'RFB_T', 'GND')
+    C('C36', '100p', 60, 128, '+3V3A', 'GND', fields={'Dielectric': 'C0G'})     # at R6's supply end (rev 0.3)
     sch.add('J5', 'Connector:Conn_Coaxial', 'U.FL', 95, 100, {'1': 'RFB_OUT', '2': 'GND'},
             footprint='Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical', fields={'MPN': 'U.FL-R-SMT-1(80)', 'LCSC': 'C88374'})
 

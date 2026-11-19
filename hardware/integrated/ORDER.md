@@ -12,7 +12,9 @@ is re-routed too. A review of that layout found the same kind of fault elsewhere
 - makes +5VA a pour on In1 under the detector, like +3V3A under the source, with FB1 where VBUS
   enters the detector frame and a new 10 uF bulk capacitor (C35) next to U3;
 - adds ground vias round the cell feed vias, and moves the exposed-pad vias of U2 and U3 out of
-  the paste windows (4 smaller windows; KiCad reports the two footprints as modified on purpose);
+  the paste windows (4 windows, about 50 % of the pad; KiCad reports the two footprints as modified
+  on purpose), and gives Y1 its own ground via;
+- adds C36 (100 pF) at the supply end of RFOUTA-'s pull-up;
 - adds thermal reliefs on the ground pads except the RF ones, and keeps the U3 via off the pads.
 
 Bring-up firmware: `firmware/bringup`.

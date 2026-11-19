@@ -48,8 +48,8 @@ CHAIN_X = 6.0                                 # first RF part on the underside
 # shunt parts: (ref, x), on the chain with their other end towards the board centre
 TX_SERIES = [('R1', 6.0), ('L1', 11.0), ('R3', 18.0), ('C3', 23.0)]
 TX_SHUNT = [('C1', 8.5), ('C2', 13.5), ('R2', 15.5), ('R4', 20.5)]
-RX_SERIES = [('R20', 6.0), ('R22', 13.0), ('C21', 22.5)]          # C21 and R24 as close to INHI as the parts next to U3 allow
-RX_SHUNT = [('R21', 8.5), ('R23', 15.5), ('R24', 19.8)]
+RX_SERIES = [('R20', 6.0), ('R22', 13.0)]          # C21 and its 50 ohm shunt R24 sit at INHI (rf_terminations())
+RX_SHUNT = [('R21', 8.5), ('R23', 15.5)]
 # hand-routed: anything the router adds on them is removed
 RF_NETS = ('CELL_P1', 'CELL_P2', 'TX_A', 'TX_B', 'TX_C', 'RX_A', 'RX_B', 'DET_HI', 'RFA_P',
            'RFA_N', 'RFA_T', 'RFB_P', 'RFB_N', 'RFB_T', 'RFB_OUT', 'DET_LO')     # see rf_terminations()
@@ -215,8 +215,8 @@ class B:
             if n:
                 pad.SetNet(self.ni[n])
         small = ref[0] in 'RCL' or ref.startswith('FB')
-        fp.Reference().SetTextSize(VECTOR2I(FromMM(0.8), FromMM(0.8)))
-        fp.Reference().SetTextThickness(FromMM(0.12))
+        fp.Reference().SetTextSize(VECTOR2I(FromMM(1.0), FromMM(1.0)))      # JLC minimum 1.0 / 0.15 mm
+        fp.Reference().SetTextThickness(FromMM(0.15))
         if small or ref.startswith('TP'):
             fp.Reference().SetLayer(pcbnew.B_Fab if side == 'B' else pcbnew.F_Fab)
         self.fps[ref] = fp
@@ -412,7 +412,7 @@ def hand(bd, pts, net, w=0.2):
         bd.boxes.append((min(ax, cx) - w / 2 - 0.3, min(ay, cy) - w / 2 - 0.3, max(ax, cx) + w / 2 + 0.3, max(ay, cy) + w / 2 + 0.3))
 
 
-def rf_terminations(bd):
+def rf_terminations(bd, rx_end):
     """The parts on the ADF4351 outputs and the AD8318 input, placed and wired by hand next to the pins.
 
     Rev 0.2 left them to near_place() and the router: the margin kept around each chip pushed them
@@ -424,8 +424,9 @@ def rf_terminations(bd):
     Source, below U2's pin row (pins 12-15 face the board edge): RFOUTA+ is the 50 ohm line to C3,
     drawn in build(). Its pull-up R5 hangs to its left. RFOUTA-, RFOUTB+ and RFOUTB- leave
     straight down and turn right at three depths, the deepest first, so nothing crosses: RFOUTA-
-    gets R6 (pull-up), C4 and R7 (its 50 ohm termination); RFOUTB+ gets R8 and C5 to J5; RFOUTB-
-    gets R9, C6 and R10.
+    gets C4 right below its turn, with R6 (pull-up, C36 at its supply end) and R7 (its 50 ohm
+    termination) beside it; RFOUTB+ gets R8 and C5 to J5; RFOUTB- gets R9, C6 and R10.
+    Detector: the 50 ohm line ends at R24, C21 stands on it right below INHI.
     """
     W = 0.2
     x12, y12 = bd.padxy('U2', '12')
@@ -435,17 +436,25 @@ def rf_terminations(bd):
     # RFOUTA+ pull-up, left of the 50 ohm line
     place_at(bd, 'R5', x12 - 1.125, LA - 0.9, False, 'RFA_P', (x12, LA - 0.9))
     hand(bd, [bd.padxy('R5', [p.GetNumber() for p in bd.fps['R5'].Pads() if p.GetNetname().lstrip('/') == 'RFA_P'][0]), (x12, LA - 0.9)], 'RFA_P')
-    # RFOUTA-: R6 to +3V3A, then C4 and R7 to GND
-    xa = x13 + 3.75
-    place_at(bd, 'R6', xa, LA - 0.825, True, 'RFA_N', (xa, LA))
-    place_at(bd, 'C4', xa + 2.4, LA, False, 'RFA_N', (xa, LA))
-    place_at(bd, 'R7', xa + 4.8, LA - 0.825, True, 'RFA_T', (xa + 4.8, LA))
-    c4a = [mm(p.GetPosition()) for p in bd.fps['C4'].Pads() if p.GetNetname().lstrip('/') == 'RFA_N'][0]
-    c4b = [mm(p.GetPosition()) for p in bd.fps['C4'].Pads() if p.GetNetname().lstrip('/') == 'RFA_T'][0]
-    hand(bd, [(x13, y12), (x13, LA), c4a], 'RFA_N', W)
-    hand(bd, [c4b, (xa + 4.8, LA)], 'RFA_T', W)
+    # RFOUTA-: C4 straight below the pin's turn (0.5 mm clear of the RFOUTA+ line), R6 to +3V3A beside
+    # its top pad with C36 (100p) at R6's supply end, R7 to GND beside its bottom pad
+    xa, ya = x13 + 0.65, LA - 0.4
+    place_at(bd, 'C4', xa, ya - 0.775, True, 'RFA_N', (xa, LA))
+    place_at(bd, 'R6', xa + 2.26, ya, False, 'RFA_N', (x13, ya))
+    place_at(bd, 'R7', xa + 2.26, ya - 1.55, False, 'RFA_T', (x13, ya - 1.55))
+    place_at(bd, 'C36', xa + 5.22, ya, False, '+3V3A', (x13, ya))
+    r6a, r6s = at_net(bd, 'R6', 'RFA_N'), at_net(bd, 'R6', '+3V3A')
+    c36 = at_net(bd, 'C36', '+3V3A')
+    hand(bd, [(x13, y12), (x13, ya), r6a], 'RFA_N', W)
+    hand(bd, [at_net(bd, 'C4', 'RFA_T'), at_net(bd, 'R7', 'RFA_T')], 'RFA_T', W)
+    hand(bd, [r6s, c36], '+3V3A', 0.3)
+    bd.via(xa + 4.0, ya - 0.9, '+3V3A', 0.6, 0.3)
+    bd.track(c36, (xa + 4.0, ya - 0.9), 0.3, '+3V3A')
+    gx, gy = at_net(bd, 'C36', 'GND')
+    bd.via(gx, gy - 0.9, 'GND', 0.6, 0.3)
+    bd.track((gx, gy), (gx, gy - 0.9), 0.3, 'GND')
     # RFOUTB+: down at xb, R8 to +3V3A on the way, C5 and J5 at the bottom
-    xb, yb = xa + 7.3, LA - 3.4
+    xb, yb = x13 + 11.05, LA - 3.4
     hand(bd, [(x14, y12), (x14, LB), (xb, LB), (xb, yb)], 'RFB_P', W)
     place_at(bd, 'R8', xb + 1.075, LA - 1.2, False, 'RFB_P', (xb, LA - 1.2))
     place_at(bd, 'C5', xb + 1.7, yb, False, 'RFB_P', (xb, yb))
@@ -477,6 +486,18 @@ def rf_terminations(bd):
         gx, gy = [mm(p.GetPosition()) for p in bd.fps[ref].Pads() if p.GetNetname() == 'GND'][0]
         bd.via(gx + dx, gy + dy, 'GND', 0.6, 0.3)
 
+    # Detector input: the 50 ohm line (RX_B) runs along the chain to R24, its 50 ohm shunt; C21 stands
+    # on it right below INHI, so the open line past the shunt is only C21 and 2.5 mm of DET_HI
+    x14d, y14d = bd.padxy('U3', '14')
+    cx21 = x14d + 0.9
+    place_at(bd, 'C21', cx21, y14d + 2.5, True, 'RX_B', (cx21, VIA_Y))        # clear of U3's courtyard
+    place_at(bd, 'R24', cx21 + 2.25, VIA_Y, False, 'RX_B', (cx21, VIA_Y))
+    c21i, c21o = at_net(bd, 'C21', 'RX_B'), at_net(bd, 'C21', 'DET_HI')
+    hand(bd, [(rx_end, VIA_Y), at_net(bd, 'R24', 'RX_B')], 'RX_B', W50)
+    hand(bd, [(cx21, VIA_Y), c21i], 'RX_B', W50)
+    hand(bd, [(x14d, y14d), (x14d, c21o[1]), c21o], 'DET_HI', W50)
+    gx, gy = at_net(bd, 'R24', 'GND')
+    bd.via(gx + 0.9, gy, 'GND', 0.6, 0.3)
     # Detector: INLO (pin 15) is left of the INHI line (pin 14). C22 sits straight below it; ENBL/VPOS
     # (pin 16) steps out sideways first, to its 100 pF C25.
     x14d, y14d = bd.padxy('U3', '14')
@@ -502,7 +523,8 @@ def at_net(bd, ref, net):
 
 # pads whose rail via is drawn by hand in support_parts(): rail_fanout() leaves them alone
 RAIL_HAND = {('U2', '10'), ('U2', '28'), ('U2', '32'), ('C17', '1'), ('C18', '1'), ('C19', '1'),
-             ('Y1', '1'), ('Y1', '4'), ('C20', '1'), ('U3', '3'), ('U3', '4'), ('U3', '9'), ('U3', '16'), ('C24', '1'), ('C26', '1'), ('C27', '1'), ('C25', '1')}
+             ('Y1', '1'), ('Y1', '4'), ('C20', '1'), ('U3', '3'), ('U3', '4'), ('U3', '9'), ('U3', '16'), ('C24', '1'), ('C26', '1'), ('C27', '1'), ('C25', '1'),
+             ('R6', '1'), ('R6', '2'), ('C36', '1')}
 
 
 def support_parts(bd):
@@ -617,6 +639,10 @@ def support_parts(bd):
     hand(bd, [rv, at_net(bd, 'C20', '+3V3A')], '+3V3A', W)
     gx, gy = at_net(bd, 'C20', 'GND')
     bd.via(gx + 1.0, gy, 'GND', 0.6, 0.3)
+    # Y1's own ground via, right below its ground pad (rev 0.3 had only C20's, 6 mm away)
+    gx, gy = at_net(bd, 'Y1', 'GND')
+    bd.via(gx, gy + 1.15, 'GND', 0.6, 0.3)
+    bd.track((gx, gy), (gx, gy + 1.15), 0.3, 'GND')
     bd.poly([rv, (rv[0], -90.6), (33.25, -91.35), (32.5, -91.35)], 0.4, '+3V3A', pcbnew.In1_Cu)
     r14 = at_net(bd, 'R14', 'SYN_REF')
     hand(bd, [p('29'), (p('29')[0], r14[1] + 0.6), r14], 'SYN_REF', W)
@@ -849,8 +875,8 @@ def build():
     # ---- fixed parts and RF chains ----
     for ref, (x, y, rot, side) in FIXED.items():
         bd.place(ref, x, y, rot, side)
-    ep_paste(bd, 'U2', 1.1, 0.95)        # 0.1 mm clear of the via rings
-    ep_paste(bd, 'U3', 0.7, 0.75)
+    ep_paste(bd, 'U2', 1.22, 1.01)       # 0.1 mm clear of the via rings, 50 % of the pad
+    ep_paste(bd, 'U3', 0.82, 0.765)      # out to the pad edge, 0.05 mm clear of the via rings, 49 %
     tx_end, tx_net = rf_chain(bd, -1, TX_SERIES, TX_SHUNT, 'CELL_P1')
     rx_end, rx_net = rf_chain(bd, 1, RX_SERIES, RX_SHUNT, 'CELL_P2')
 
@@ -871,16 +897,15 @@ def build():
         y0, y1 = sorted((sy * (LAND0 - 6), sy * (VIA_Y - 0.7)))
         bd.rule_area(rect(-9, y0, 9, y1), [pcbnew.B_Cu], vias=False, pour=False)
 
-    # source output: C3 -> RFOUTA+; receive: C21 -> INHI. Both stay clear of the small parts placed next
+    # source output: C3 -> RFOUTA+. The receive line to C21/R24 at INHI is drawn in rf_terminations()
     x12, y12 = bd.padxy('U2', '12')
     bd.poly([(tx_end, -VIA_Y), (x12, -VIA_Y), (x12, y12)], W50, tx_net)
     x14, y14 = bd.padxy('U3', '14')
-    bd.poly([(rx_end, VIA_Y), (x14, VIA_Y), (x14, y14)], W50, rx_net)
     for x, y, c, d in ((tx_end, -VIA_Y, x12, y12), (rx_end, VIA_Y, x14, y14)):
-        bd.boxes.append((min(x, c) - 0.6, y - 0.6, max(x, c) + 0.6, y + 0.6))
+        bd.boxes.append((min(x, c) - 0.6, y - 0.6, max(x, c) + 3.5, y + 0.6))
         bd.boxes.append((c - 0.6, min(y, d) - 0.6, c + 0.6, max(y, d) + 0.6))
 
-    rf_terminations(bd)
+    rf_terminations(bd, rx_end)
     support_parts(bd)
 
     # ---- small parts next to what they serve ----
@@ -916,12 +941,12 @@ def build():
     for ref, label, dx, dy in (('TP1', 'DET', 0, 3.0), ('TP5', '5VA', 0, 3.0), ('TP6', 'ADC3', 0, 3.0), ('TP2', 'VT', -2.2, 0),
                                ('TP3', 'MUX', 0, 2.05), ('TP4', '3V3A', 0, 2.05)):    # source side: under the frame ring
         tx, ty = mm(bd.fps[ref].GetPosition())
-        bd.text(label, tx + dx, ty + dy, 0.8, pcbnew.B_SilkS, mirror=True)
+        bd.text(label, tx + dx, ty + dy, 1.0, pcbnew.B_SilkS, mirror=True)
     bd.shape(pcbnew.F_SilkS, rect(85, -34, 120, 34), w=0.15)
     bd.text('GREEN', 92, -52, 1.6)
     bd.text('RED', 108, -52, 1.6)
     bd.text('START', 100, -74, 1.6)
-    bd.text('Pico 2: micro-USB and BOOTSEL here', 100, 16, 1.4, pcbnew.B_SilkS, mirror=True)
+    bd.text('Pico 2: micro-USB and BOOTSEL here', 100, 22.5, 1.4, pcbnew.B_SilkS, mirror=True)
     bd.text('SOURCE - fit shield can on this frame', 32, -71, 1.4, pcbnew.B_SilkS, mirror=True)
     bd.text('DETECTOR - fit shield can on this frame', 32, 71, 1.4, pcbnew.B_SilkS, mirror=True)
     bd.text('J4: spare GPIO / ADC / RUN', 86, 76, 1.4, pcbnew.B_SilkS, mirror=True)
@@ -1052,6 +1077,8 @@ def route_keepouts(bd):
         bd.rule_area(rect(cx - gx, ys[0] - hh, cx + gx, ys[-1] + hh), [pcbnew.B_Cu], vias=True, pour=False)
     if gy > 0.05:
         bd.rule_area(rect(xs[0] - hw, cy - gy, xs[-1] + hw, cy + gy), [pcbnew.B_Cu], vias=True, pour=False)
+    # and round it: rev 0.3 had MUXOUT 0.16 mm from the REF_OUT pad, beside the whole part
+    bd.rule_area(rect(xs[0] - hw - 1.5, ys[0] - hh - 1.5, xs[-1] + hw + 1.5, ys[-1] + hh + 1.5), [pcbnew.B_Cu], vias=True, pour=False)
     # No keepout along the 50 ohm chains: one covering their pads and the parts beside them stalls
     # Freerouting (about 12 connections left open every time). rf_neighbours() checks the result instead
     # In1 stays a whole rail pour under the chips and their decoupling: the router may not cut it up
@@ -1138,6 +1165,36 @@ def pours(bd):
     # the analog rails: everything on each is inside its block
     bd.zone([pcbnew.In1_Cu], rect(12.0, -106.0, 58.0, -74.0), '+3V3A', clearance=0.3)
     bd.zone([pcbnew.In1_Cu], rect(12.0, 74.0, 58.0, 106.0), '+5VA', clearance=0.3)
+    rf_pour_gap(bd)
+
+
+RF_POUR_GAP = 0.5
+
+
+def rf_pour_gap(bd):
+    """The B.Cu ground pour stays 0.5 mm off the 50 ohm lines (0.3 mm made them grounded coplanar lines,
+    a few ohm low). Stops 1.2 mm short of the IC pins, where the pour has to reach the ground pins."""
+    pins = [mm(pd.GetPosition()) for r in ('U2', 'U3') for pd in bd.fps[r].Pads()]
+    e = W50 / 2 + RF_POUR_GAP
+    for t in bd.b.GetTracks():
+        if t.GetClass() != 'PCB_TRACK' or t.GetLayer() != pcbnew.B_Cu or abs(t.GetWidth() / 1e6 - W50) > 0.01:
+            continue
+        (ax, ay), (cx, cy) = mm(t.GetStart()), mm(t.GetEnd())
+        L = math.hypot(cx - ax, cy - ay)
+        if L < 0.05:
+            continue
+        ux, uy = (cx - ax) / L, (cy - ay) / L
+        near = lambda x, y: any(math.hypot(x - px, y - py) < 0.4 for px, py in pins)
+        if near(ax, ay):
+            ax, ay = ax + 1.2 * ux, ay + 1.2 * uy
+        if near(cx, cy):
+            cx, cy = cx - 1.2 * ux, cy - 1.2 * uy
+        if (cx - ax) * ux + (cy - ay) * uy <= 0:
+            continue
+        nx, ny = -uy * e, ux * e
+        ax, ay, cx, cy = ax - ux * e, ay - uy * e, cx + ux * e, cy + uy * e
+        bd.rule_area([(ax + nx, ay + ny), (cx + nx, cy + ny), (cx - nx, cy - ny), (ax - nx, ay - ny)],
+                     [pcbnew.B_Cu], tracks=False, vias=False, pour=True)
 
 
 # Pads join the pours through 4 short spokes (easier to solder, and the paste isn't pulled away by
@@ -1146,7 +1203,7 @@ def pours(bd):
 THERMAL_GAP, THERMAL_SPOKE = 0.25, 0.3
 SOLID_GND = {'U2', 'U3', 'J1', 'J2', 'J5', 'R2', 'R4', 'R7', 'R10', 'R21', 'R23', 'R24',
              'C10', 'C11', 'C12', 'C14', 'C15', 'C16', 'C17', 'C18', 'C19', 'C20', 'C22',
-             'C24', 'C25', 'C26', 'C27',
+             'C24', 'C25', 'C26', 'C27', 'C36',
              'Y1', 'U5', 'C8', 'C28'}      # no room for 2 spokes between the tracks (DRC starved_thermal)
 SOLID_PADS = {('U1', '23')}
 

@@ -288,7 +288,7 @@ clean one; 2.1.0 was used. Treat the committed `.kicad_pcb` as the source of tru
 | 10, 11 | LCD SCK, SDA (SPI1) | 26, 27 | spare, on J4 (ADC0, ADC1) |
 | 12, 13 | LCD backlight, CS | 28 | detector fast path via R31, not fitted (ADC2) |
 
-ADS1115 inputs: AIN0 detector, AIN1 detector temperature, AIN2 VBUS / 2, AIN3 spare on J4.
+ADS1115 inputs: AIN0 detector, AIN1 detector temperature, AIN2 +5VA / 2 (after FB1, so it sees the supply U3 gets), AIN3 spare on J4.
 
 **Loop filter:** R12 510 ohm, C7 1.5 nF, C8 15 nF, R13 330 ohm, C9 680 pF, calculated for about
 63 kHz and 50 degrees at 2.5 mA charge pump, 40 MHz/V, N = 124. Program the 2.5 mA setting in
@@ -335,11 +335,16 @@ shows no deep notch. Rev 0.2 left the small parts round U2 and U3 to a greedy pl
 clear of the chips for the router. They landed 7-35 mm from their pins, and the router wired RFOUTA-
 through 45 mm to its pull-up and termination, and INLO through 22 mm to its decoupling. Both stubs
 are long enough to resonate in the band, so they are the main suspect. The J5 test (driving the
-cell from output B) should confirm it. Rev 0.3 changes only the layout, except for one added capacitor:
+cell from output B) should confirm it. Rev 0.3 changes only the layout, except for two added capacitors
+(C35, C36):
 
 - **RF terminations at the pins** (`rf_terminations()`): RFOUTA+/- and RFOUTB+/- leave straight from
-  the pins and turn at three depths, so nothing crosses. Each net is under 2 mm, except RFB+/- (17 mm,
-  only used through J5). INLO's C22 sits straight below the pin.
+  the pins and turn at three depths, so nothing crosses. RFOUTA- reaches C4 in 4.5 mm (6 mm of copper
+  with the branch to its pull-up R6), and R6's supply end has its own 100 pF (C36) and via. RFOUTA+ is
+  the 50 ohm line itself, with R5 on a 1 mm branch. RFB+/- are 17-18 mm, only used through J5. On the
+  detector, the 50 ohm line runs to R24 (the input's 50 ohm shunt) and C21 stands on it right below
+  INHI: 2.6 mm of DET_HI past the shunt, against 12 mm in the first rev 0.3 layout. INLO's C22 sits
+  straight below its pin.
 - **Every other U2/U3 part at its pin** (`support_parts()`): VVCO decoupling (C16, C15, FB2) on one
   line from pin 17; TEMP, RSET, VCOM and VREF parts in two columns beside the chip, 1.5-6 mm of
   track each. The loop filter is a short spine at CP (pin 7). VTUNE drops to In1 at pin 20 and runs
@@ -357,13 +362,21 @@ cell from output B) should confirm it. Rev 0.3 changes only the layout, except f
   U2's digital pins are fanned out by hand to vias, and Y1's rail has a locked In1 track to U2,
   so the digital lines can't cut it off from the +3V3A pour.
 - **Ground:** three more vias round each cell feed via. Exposed-pad vias sit in a cross between 4
-  paste windows instead of inside them, so they don't wick the solder away. Ground pads get
-  thermal reliefs for hand soldering, except the RF ones.
+  paste windows (about 50 % of the pad) instead of inside them, so they don't wick the solder away.
+  Y1 has its own ground via under its ground pad, and the router keeps 1.5 mm off Y1. The B.Cu
+  ground pour stays 0.5 mm off the 50 ohm lines, so they stay microstrip rather than coplanar. Ground
+  pads get thermal reliefs for hand soldering, except the RF ones.
 
 Two independent reviews (agents, 2026-11-18) checked the copper. The first, on the board with only
 the RF terminations fixed, found the problems behind the other points. The second, on this layout,
 confirmed six of its eight findings fixed and found VTUNE's via 0.18 mm from the RFOUTA+ line and
-MUXOUT threaded under Y1; both were moved before this board was generated. What remains, accepted:
+MUXOUT threaded under Y1; both were moved before this board was generated. A third (2026-11-19)
+found RFOUTA- still 8.8 mm and the INHI shunt R24 12 mm from its pin, Y1 with one ground via 6 mm
+away, thin exposed-pad paste and the ground pour 0.3 mm from the 50 ohm lines; all are fixed above.
+It also raised a possible cause rev 0.3 doesn't remove: each analog rail pour on In1 is 46 x 32 mm
+and could resonate near 1.5 GHz (estimate, not modelled). Rev 0.2 has the +3V3A one too, so it can
+be tested there: 100 pF from R5/R6's +3V3A pads to ground, and see whether the notch moves. What
+remains, accepted:
 
 - VTUNE is about 17 mm from pin 20 to the filter, buried on In1 under U2, with TP2 on a 6.5 mm stub.
 - C11 (VCOM) is 6 mm and C14 (VP) 5 mm from their pins; every other U2/U3 capacitor is within 3 mm.
@@ -371,6 +384,8 @@ MUXOUT threaded under Y1; both were moved before this board was generated. What 
   gap doesn't allow closer ones.
 - MUXOUT runs 0.3 mm beside REFIN for about 4.5 mm between C18 and C19. It is set to digital lock
   detect, so it doesn't toggle once locked.
+- R5 (RFOUTA+ pull-up) has no 100 pF of its own: there is no room between the 50 ohm line and the
+  loop filter. Its supply via is 0.6 mm away, with C17 about 2.5 mm beyond it.
 - RFB+ passes 0.3 mm from the RFOUTA- termination; its pull-up R8 is 15 mm from the pin. Output B
   is off in normal use.
 - DET_TEMP runs 0.38 mm beside INHI for 0.5 mm at U3, and the +5VA escape 0.4 mm beside INLO for 1.7 mm.

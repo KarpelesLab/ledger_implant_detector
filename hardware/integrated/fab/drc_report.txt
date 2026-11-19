@@ -1,8 +1,8 @@
 ** Drc report for integrated.kicad_pcb **
-** Created on 2026-11-19T00:50:57 **
+** Created on 2026-11-19T14:33:40 **
 ** Report includes: Errors, Warnings **
 
-** Found 28 DRC violations **
+** Found 23 DRC violations **
 [track_dangling]: Track has unconnected end
     Local override; warning
     @(150.0000 mm, 56.1965 mm): Track [/CELL_P1] on F.Cu, length 11.5965 mm
@@ -11,10 +11,13 @@
     @(150.0000 mm, 243.8035 mm): Track [/CELL_P2] on F.Cu, length 11.5965 mm
 [via_dangling]: Via is not connected or connected on only one layer
     Local override; warning
-    @(181.0500 mm, 62.0000 mm): Via [/SYN_MUX] on F.Cu - B.Cu
+    @(177.6000 mm, 57.6000 mm): Via [/SYN_CLK] on F.Cu - B.Cu
 [via_dangling]: Via is not connected or connected on only one layer
     Local override; warning
-    @(183.2500 mm, 63.4000 mm): Via [/SYN_PDBRF] on F.Cu - B.Cu
+    @(177.6000 mm, 56.6000 mm): Via [/SYN_DATA] on F.Cu - B.Cu
+[via_dangling]: Via is not connected or connected on only one layer
+    Local override; warning
+    @(184.3000 mm, 62.4000 mm): Via [/SYN_LD] on F.Cu - B.Cu
 [silk_edge_clearance]: Silkscreen clipped by board edge
     Rule: board setup constraints silk; warning
     @(280.0000 mm, 46.0000 mm): Segment on Edge.Cuts
@@ -69,22 +72,6 @@
     Local override; warning
     @(150.2500 mm, 252.6400 mm): Segment of J2 on F.Silkscreen
     @(148.5000 mm, 243.8035 mm): Polygon on F.Mask
-[silk_overlap]: Silkscreen clearance
-    Rule: board setup constraints silk; warning
-    @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
-    @(264.5627 mm, 165.3675 mm): Segment of R34 on B.Silkscreen
-[silk_overlap]: Silkscreen clearance
-    Rule: board setup constraints silk; warning
-    @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
-    @(264.5627 mm, 166.4125 mm): Segment of R34 on B.Silkscreen
-[silk_overlap]: Silkscreen clearance
-    Rule: board setup constraints silk; warning
-    @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
-    @(239.6373 mm, 165.3675 mm): Segment of R35 on B.Silkscreen
-[silk_overlap]: Silkscreen clearance
-    Rule: board setup constraints silk; warning
-    @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
-    @(239.6373 mm, 166.4125 mm): Segment of R35 on B.Silkscreen
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
     @(182.0000 mm, 79.0000 mm): PCB text 'SOURCE - fit shield can on this frame' on B.Silkscreen
@@ -95,16 +82,8 @@
     @(182.5000 mm, 59.5500 mm): Pad 1 [/+3V3A] of C18 on B.Cu
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
-    @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
-    @(263.9750 mm, 165.8900 mm): Pad 1 [/ADC_RDY] of R34 on B.Cu
-[silk_over_copper]: Silkscreen clipped by solder mask
-    Local override; warning
-    @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
-    @(240.2250 mm, 165.8900 mm): Pad 1 [/LCD_BL] of R35 on B.Cu
-[silk_over_copper]: Silkscreen clipped by solder mask
-    Local override; warning
-    @(250.0000 mm, 166.0000 mm): PCB text 'Pico 2: micro-USB and BOOTSEL here' on B.Silkscreen
-    @(238.5750 mm, 165.8900 mm): Pad 2 [/LCD_BL_R] of R35 on B.Cu
+    @(177.0000 mm, 249.8300 mm): Reference field of U3
+    @(178.2250 mm, 250.1625 mm): Pad 2 [/DET_HI] of C21 on B.Cu
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
     @(177.0000 mm, 249.8300 mm): Reference field of U3

@@ -1,5 +1,5 @@
 "Designator","Value","Footprint","MPN","Manufacturer","LCSC","Qty","DNP"
-"C3-C6,C16,C19,C25,C27","100p","Capacitor_SMD:C_0603_1608Metric","","","","8",""
+"C3-C6,C16,C19,C25,C27,C36","100p","Capacitor_SMD:C_0603_1608Metric","","","","9",""
 "C7","1.5n","Capacitor_SMD:C_0603_1608Metric","","","","1",""
 "C8","15n","Capacitor_SMD:C_0603_1608Metric","","","","1",""
 "C9","680p","Capacitor_SMD:C_0603_1608Metric","","","","1",""
