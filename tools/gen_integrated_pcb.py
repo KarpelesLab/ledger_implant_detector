@@ -64,8 +64,8 @@ FIXED = {
     'J3': (111.28, 32.0, 270, 'F'), 'D1': (92.0, -45.0, 0, 'F'), 'D2': (108.0, -45.0, 0, 'F'),
     'SW1': (97.0, -66.0, 0, 'F'),
     'J4': (86.0, 60.0, 90, 'B'),
-    'TP1': (40.0, 80.0, 0, 'B'),       # TP2 (VTUNE) sits with the loop filter, TP3 (MUXOUT) outside the frame
-    'TP4': (52.0, -76.0, 0, 'B'), 'TP5': (46.0, 80.0, 0, 'B'), 'TP6': (52.0, 80.0, 0, 'B'),
+    # test points just outside the frames, so they can be probed with the cans on (TP2-TP5: support_parts())
+    'TP1': (40.0, 68.5, 0, 'B'), 'TP6': (52.0, 68.5, 0, 'B'),
 }
 # small parts placed next to the pad they serve: ref -> (target ref, target pad)
 # (the parts around U2 and U3 are placed by hand: see support_parts())
@@ -412,6 +412,9 @@ def hand(bd, pts, net, w=0.2):
         bd.boxes.append((min(ax, cx) - w / 2 - 0.3, min(ay, cy) - w / 2 - 0.3, max(ax, cx) + w / 2 + 0.3, max(ay, cy) + w / 2 + 0.3))
 
 
+J5_AT = (64.2, -97.5)       # below the mounting hole, just outside the source frame
+
+
 def rf_terminations(bd, rx_end):
     """The parts on the ADF4351 outputs and the AD8318 input, placed and wired by hand next to the pins.
 
@@ -463,15 +466,25 @@ def rf_terminations(bd, rx_end):
     c5a = [mm(p.GetPosition()) for p in bd.fps['C5'].Pads() if p.GetNetname().lstrip('/') == 'RFB_P'][0]
     c5b = [mm(p.GetPosition()) for p in bd.fps['C5'].Pads() if p.GetNetname().lstrip('/') == 'RFB_OUT'][0]
     hand(bd, [(xb, yb), c5a], 'RFB_P', W)
-    jx = c5b[0] + 3.3
+    # J5 outside the frame, so a cable can be plugged in with the can on: RFB_OUT drops to In1 next to C5
+    # and runs as a 0.24 mm stripline (about 50 ohm between the floor and In2) under the frame ring, with a
+    # ground via beside each signal via for the return current
     for rot in (0, 180):
-        fp = bd.place('J5', jx, yb, rot, 'B')
-        if bd.padxy('J5', '1')[0] < jx:
+        fp = bd.place('J5', J5_AT[0], J5_AT[1], rot, 'B')
+        if bd.padxy('J5', '1')[0] < J5_AT[0]:
             break
         bd.b.Remove(fp)
         bd.boxes.pop()
         del bd.fps['J5']
-    hand(bd, [c5b, bd.padxy('J5', '1')], 'RFB_OUT', W)
+    j1 = bd.padxy('J5', '1')
+    va, vb = (c5b[0] + 1.4, c5b[1]), (j1[0] - 1.3, j1[1])
+    hand(bd, [c5b, va], 'RFB_OUT', W)
+    hand(bd, [vb, j1], 'RFB_OUT', W)
+    for v in (va, vb):
+        bd.via(*v, 'RFB_OUT', 0.6, 0.3)
+    bd.poly([va, (vb[0] - 1.0, va[1]), (vb[0], va[1] + 1.0), vb], 0.24, 'RFB_OUT', pcbnew.In1_Cu)
+    for gx, gy in ((va[0], va[1] - 1.2), (va[0], va[1] + 1.2), (vb[0], vb[1] + 1.3), (j1[0] - 0.1, j1[1] - 2.4)):
+        bd.via(gx, gy, 'GND', 0.6, 0.3)
     # RFOUTB-: R9 to +3V3A, then C6 and R10 to GND
     xc = xb + 4.2
     place_at(bd, 'R9', xc, LC - 0.825, True, 'RFB_N', (xc, LC))
@@ -522,7 +535,8 @@ def at_net(bd, ref, net):
 # pads whose rail via is drawn by hand in support_parts(): rail_fanout() leaves them alone
 RAIL_HAND = {('U2', '10'), ('U2', '28'), ('U2', '32'), ('C17', '1'), ('C18', '1'), ('C19', '1'),
              ('Y1', '1'), ('Y1', '4'), ('C20', '1'), ('U3', '3'), ('U3', '4'), ('U3', '9'), ('U3', '16'), ('C24', '1'), ('C26', '1'), ('C27', '1'), ('C25', '1'),
-             ('R6', '1'), ('R6', '2'), ('C36', '1'), ('R5', '1'), ('R5', '2'), ('C37', '1')}
+             ('R6', '1'), ('R6', '2'), ('C36', '1'), ('R5', '1'), ('R5', '2'), ('C37', '1'),
+             ('C38', '1'), ('TP4', '1'), ('TP5', '1')}
 
 
 def support_parts(bd):
@@ -603,10 +617,19 @@ def support_parts(bd):
     for ref, dx, dy in (('C7', 0, 1.0), ('C8', 0, 1.0), ('C9', -1.0, 0)):
         gx, gy = at_net(bd, ref, 'GND')
         bd.via(gx + dx, gy + dy, 'GND', 0.6, 0.3)
-    # TP2: VTUNE test pad, fed on In1 from the loop filter via (its own via is inside the pad)
-    bd.place('TP2', 21.2, -98.2, 0, 'B')
-    bd.via(21.2, -98.2, 'SYN_VT', 0.6, 0.3)
-    bd.poly([vt_l, (21.2, -98.2)], W, 'SYN_VT', pcbnew.In1_Cu)
+    # TP2 (VTUNE) through R38 (10k) at the loop filter: the pad is outside the frame, 25 mm away on In1,
+    # and the resistor keeps that trace off the VTUNE node
+    place_at(bd, 'R38', 21.2, -98.2, True, 'SYN_VT', (21.2, -101))
+    r38v, r38t = at_net(bd, 'R38', 'SYN_VT'), at_net(bd, 'R38', 'SYN_VT_TP')
+    bd.via(21.2, -99.95, 'SYN_VT', 0.6, 0.3)
+    bd.poly([vt_l, (21.2, -99.95)], W, 'SYN_VT', pcbnew.In1_Cu)
+    hand(bd, [(21.2, -99.95), r38v], 'SYN_VT', W)
+    bd.via(20.0, r38t[1], 'SYN_VT_TP', 0.6, 0.3)
+    hand(bd, [r38t, (20.0, r38t[1])], 'SYN_VT_TP', W)
+    yt = -FRAME[2] + 4.0
+    bd.place('TP2', 20.0, yt, 0, 'B')
+    bd.via(20.0, yt, 'SYN_VT_TP', 0.6, 0.3)
+    bd.poly([(20.0, r38t[1]), (20.0, yt)], W, 'SYN_VT_TP', pcbnew.In1_Cu)
     # ---- U2 bottom row: pin 10 (+3V3A) drops to In1 next to the pin, C17 just below ----
     p10 = p('10')
     place_at(bd, 'C17', 30.2, -99.6, False, '+3V3A', p10)
@@ -631,6 +654,13 @@ def support_parts(bd):
         hand(bd, [(px, py), (x, -91.35), at_net(bd, ref, '+3V3A')], '+3V3A', W)
         gx, gy = at_net(bd, ref, 'GND')
         bd.via(gx, gy + 1.0, 'GND', 0.6, 0.3)
+    # C38 (100n, 0402) left of C19 on pin 32's via; pin 28 has no room on any side (C19 and the LD/PDBRF
+    # fan-out), but shares the same In1 node 2.25 mm away
+    place_at(bd, 'C38', 28.9, -90.75, True, '+3V3A', (28.9, -92))
+    c38s, c38g = at_net(bd, 'C38', '+3V3A'), at_net(bd, 'C38', 'GND')
+    hand(bd, [(30.25, -91.35), (29.5, -91.35), c38s], '+3V3A', W)
+    bd.via(28.9, -89.45, 'GND', 0.6, 0.3)
+    bd.track(c38g, (28.9, -89.45), W, 'GND')
     # ---- REFIN: R14 at the oscillator's output ----
     yx, yy = bd.padxy('Y1', '3')
     place_at(bd, 'R14', yx, yy - 2.6, True, 'REF_OUT', (yx, yy))      # clear of Y1's courtyard
@@ -676,6 +706,11 @@ def support_parts(bd):
     bd.place('TP3', 27.7, ye + 2.0, 0, 'B')
     bd.via(27.7, ye + 2.0, 'SYN_MUX', 0.6, 0.3)
     bd.poly([(27.7, ye), (27.7, ye + 2.0)], W, 'SYN_MUX', pcbnew.In1_Cu)
+    # the rail test points: a locked In1 track from inside the pour out to the pad
+    for ref, net, x, yin, yout in (('TP4', '+3V3A', 52.0, -75.2, ye + 2.0), ('TP5', '+5VA', 46.0, 75.2, -(ye + 2.0))):
+        bd.place(ref, x, yout, 0, 'B')
+        bd.via(x, yout, net, 0.6, 0.3)
+        bd.poly([(x, yin), (x, yout)], W, net, pcbnew.In1_Cu)
 
     # ---- U3 ----
     q = lambda n: bd.padxy('U3', n)
@@ -840,7 +875,7 @@ def fence(bd, free):
             bd.via(x, sy * y, 'GND', 0.6, 0.3)
 
 
-GND_HAND = {'C37'}       # ground drawn by hand to a neighbour's via (support_parts())
+GND_HAND = {'C37', 'C38'}       # ground drawn by hand to a neighbour's via (support_parts())
 
 
 def ground_vias(bd, free):
@@ -968,8 +1003,8 @@ def build():
     bd.text(gf.REPO, 0, 58, 1.6)
     bd.text('LCD 2.0in ST7789', 102, -2, 2.0)
     # test points: what each one carries, on the underside next to the pad
-    for ref, label, dx, dy in (('TP1', 'DET', 0, 3.0), ('TP5', '5VA', 0, 3.0), ('TP6', 'ADC3', 0, 3.0), ('TP2', 'VT', -2.2, 0),
-                               ('TP3', 'MUX', 0, 2.05), ('TP4', '3V3A', 0, 2.05)):    # TP4: under the frame ring
+    for ref, label, dx, dy in (('TP1', 'DET', 0, -2.05), ('TP5', '5VA', 0, -2.05), ('TP6', 'ADC3', 0, -2.05), ('TP2', 'VT', 0, 2.05),
+                               ('TP3', 'MUX', 0, 2.05), ('TP4', '3V3A', 0, 2.05)):
         tx, ty = mm(bd.fps[ref].GetPosition())
         bd.text(label, tx + dx, ty + dy, 1.0, pcbnew.B_SilkS, mirror=True)
     bd.shape(pcbnew.F_SilkS, rect(85, -34, 120, 34), w=0.15)
@@ -1255,7 +1290,7 @@ def rf_pour_gap(bd):
 # the plane), except RF grounds: a spoke adds ~0.5-1 nH, which the RF ICs, the pad and termination
 # shunts and their decoupling can't take.
 THERMAL_GAP, THERMAL_SPOKE = 0.25, 0.3
-SOLID_GND = {'U2', 'U3', 'J1', 'J2', 'J5', 'R2', 'R4', 'R7', 'R10', 'R21', 'R23', 'R24',
+SOLID_GND = {'U2', 'U3', 'J1', 'J2', 'J5', 'C38', 'R2', 'R4', 'R7', 'R10', 'R21', 'R23', 'R24',
              'C10', 'C11', 'C12', 'C14', 'C15', 'C16', 'C17', 'C18', 'C19', 'C20', 'C22',
              'C24', 'C25', 'C26', 'C27', 'C36', 'C37',
              'Y1', 'U5', 'C8', 'C28'}      # no room for 2 spokes between the tracks (DRC starved_thermal)
@@ -1407,6 +1442,9 @@ DRU = """(version 1)
 (rule "C37 between R5 and C17"
   (condition "A.Reference == 'C37'")
   (constraint courtyard_clearance (min -0.6mm)))
+(rule "RFB_OUT stripline clear of the In1 pour"
+  (condition "A.NetName == '/RFB_OUT' && B.Type == 'Zone'")
+  (constraint clearance (min 0.5mm)))
 """
 
 
@@ -1477,7 +1515,8 @@ def jlc_files(fab):
              '330': ('RC0603FR-07330RL', 'C105881'), '33': ('0603WAF330JT5E', 'C23140'), '150': ('0603WAF1500T5E', 'C22808'),
              '39': ('0603WAF390JT5E', 'C23154'), '499': ('RC0603FR-07499RL', 'C137714'), '1k': ('0603WAF1001T5E', 'C21190'),
              '100k': ('0603WAF1003T5E', 'C25803'), '4.7k': ('0603WAF4701T5E', 'C23162'), '10k': ('0603WAF1002T5E', 'C25804'),
-             '47': ('0603WAF470JT5E', 'C23182'), '100p': ('CC0603JRNPO0BN101', 'C107033'), '100p@0402': ('0402CG101J500NT', 'C1546'), '220p': ('GCM1885C2A221JA16D', 'C388907'),
+             '47': ('0603WAF470JT5E', 'C23182'), '100p': ('CC0603JRNPO0BN101', 'C107033'), '100p@0402': ('0402CG101J500NT', 'C1546'),
+             '100n@0402': ('CL05B104KO5NNNC', 'C1525'), '220p': ('GCM1885C2A221JA16D', 'C388907'),
              '680p': ('CC0603JRNPO9BN681', 'C107055'), '1n': ('CL10C102JB8NNNC', 'C163508'), '1.5n': ('CGA0603C0G152J500JT', 'C36911403'),
              '10n': ('0603B103K500NT', 'C57112'), '15n': ('CC0603KRX7R9BB153', 'C107076'), '100n': ('CC0603KRX7R9BB104', 'C14663'),
              '4.7u': ('CL21A475KBQNNNE', 'C98192'), '10u': ('CL21A106KAYNNNE', 'C15850'), '600R': ('GZ1608D601TF', 'C1002'),

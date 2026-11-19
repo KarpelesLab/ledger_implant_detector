@@ -2,3 +2,6 @@
 (rule "C37 between R5 and C17"
   (condition "A.Reference == 'C37'")
   (constraint courtyard_clearance (min -0.6mm)))
+(rule "RFB_OUT stripline clear of the In1 pour"
+  (condition "A.NetName == '/RFB_OUT' && B.Type == 'Zone'")
+  (constraint clearance (min 0.5mm)))

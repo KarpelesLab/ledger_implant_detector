@@ -7,26 +7,29 @@ by hand at the pins (`rf_terminations()` in `tools/gen_integrated_pcb.py`), so t
 is re-routed too. A review of that layout found the same kind of fault elsewhere, so rev 0.3 also:
 
 - places every decoupling, bias and loop-filter part of U2 and U3 by hand, next to its pin
-  (`support_parts()`). VTUNE is about 15 mm, buried on In1 under U2; TP2 is next to the loop filter;
+  (`support_parts()`). VTUNE is about 15 mm, buried on In1 under U2;
 - keeps the router out of the gaps between the pads of small parts and off In1 under the chips;
 - makes +5VA a pour on In1 under the detector, like +3V3A under the source, with FB1 where VBUS
   enters the detector frame and a new 10 uF bulk capacitor (C35) next to U3;
 - adds ground vias round the cell feed vias, and moves the exposed-pad vias of U2 and U3 out of
   the paste windows (4 windows, about 50 % of the pad; KiCad reports the two footprints as modified
   on purpose), and gives Y1 its own ground via;
-- adds C36 and C37 (100 pF) at the supply ends of the RFOUTA- and RFOUTA+ pull-ups (C37 is the
-  board's one 0402 part);
+- adds C36 and C37 (100 pF) at the supply ends of the RFOUTA- and RFOUTA+ pull-ups (C37 is
+  0402, like C38 below);
 - adds thermal reliefs on the ground pads except the RF ones, and keeps every generated ground via
   0.2 mm off the pads (rev 0.2's U3 fault);
 - moves C25 (100 pF) from AD8318's ENBL pin to its input supply, and C31 next to the ADS1115;
-- runs the synthesizer's control lines on In1 from U2's fan-out vias to outside the source frame,
-  and moves TP3 (MUXOUT) outside the frame.
+- runs the synthesizer's control lines on In1 from U2's fan-out vias to outside the source frame;
+- moves every test point and J5 (U.FL) just outside the frames, so they work with the cans fitted.
+  TP2 (VTUNE) reads through R38 (10k) at the loop filter; J5 is fed by an In1 stripline;
+- adds C38 (100 nF, 0402) on U2's pin 32;
+- uses the Pico symbol's passive alternate for AGND, which clears the last ERC error.
 
 The stack-up is set in the board file, so the gerber job file names it too.
 
 Bring-up firmware: `firmware/bringup`.
 
-**Check in JLC's preview:** J5 (U.FL) moved and turned, and Y1 is turned 180 degrees. Confirm J5's
+**Check in JLC's preview:** J5 (U.FL) moved outside the source frame, below the mounting hole, and Y1 is turned 180 degrees. Confirm J5's
 signal pin lands on the round pad and Y1's pin 1 marking matches, as you did for rev 0.2.
 
 ## Main board

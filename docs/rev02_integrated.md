@@ -268,9 +268,9 @@ steps are in [hardware/integrated/ORDER.md](../hardware/integrated/ORDER.md).
 Check status (`hardware/integrated/fab/*_report.txt`): DRC 0 errors, 0 unconnected, schematic
 parity OK. What remains are silkscreen warnings, the landing lines' open ends (intentional) and
 U2/U3's footprints, which KiCad reports as modified because of their paste windows (on purpose).
-`integrated.kicad_dru` lets C37's courtyard overlap its neighbours'. ERC shows 1 error: the Pico symbol's GND and AGND pins are both power outputs, and
-they are meant to be joined. KiCad takes that severity from its pin map, so the project's
-`pin_to_pin` setting doesn't silence it. These checks prove the layout matches the schematic, not that the
+`integrated.kicad_dru` lets C37's courtyard overlap its neighbours' and keeps the In1 pour 0.5 mm
+off J5's stripline. ERC shows 0 errors: the Pico symbol's AGND pin uses its passive "GND" alternate,
+since here it is tied to GND (as stock, GND and AGND are both power outputs). These checks prove the layout matches the schematic, not that the
 circuit works. Rev 0.2 has been built and its blocks work with `firmware/bringup`; rev 0.3 has
 not been built.
 
@@ -340,15 +340,18 @@ shows no deep notch. Rev 0.2 left the small parts round U2 and U3 to a greedy pl
 clear of the chips for the router. They landed 7-35 mm from their pins, and the router wired RFOUTA-
 through 45 mm to its pull-up and termination, and INLO through 22 mm to its decoupling. Both stubs
 are long enough to resonate in the band, so they are the main suspect. The J5 test (driving the
-cell from output B) should confirm it. Rev 0.3 changes only the layout, except for three added
-capacitors (C35, C36, C37) and C25 moved from ENBL to VPSI:
+cell from output B) should confirm it. Rev 0.3 changes only the layout, except for four added
+capacitors (C35-C38), R38 for TP2, and C25 moved from ENBL to VPSI:
 
 - **RF terminations at the pins** (`rf_terminations()`): RFOUTA+/- and RFOUTB+/- leave straight from
   the pins and turn at three depths, so nothing crosses. RFOUTA- reaches C4 in 4.5 mm (6 mm of copper
   with the branch to its pull-up R6), and R6's supply end has its own 100 pF (C36) and via. RFOUTA+ is
   the 50 ohm line itself, with R5 on a 1 mm branch; R5 carries about half that output's RF current,
   and its supply end has a 100 pF too (C37, 0402, the only size that fits between R5 and C17), so
-  the current returns there instead of going into the +3V3A pour. RFB+/- are 17-18 mm, only used through J5. On the
+  the current returns there instead of going into the +3V3A pour. RFB+/- are 17-18 mm, only used through J5. J5 is now
+  outside the source frame, below the mounting hole, so a cable can be plugged in with the can on:
+  RFB_OUT drops to In1 next to C5 and runs about 20 mm as a 0.24 mm stripline (about 50 ohm between
+  the floor and In2, estimated) under the frame ring, with a ground via beside each signal via. On the
   detector, the 50 ohm line runs to R24 (the input's 50 ohm shunt) and C21 stands on it right below
   INHI: 2.6 mm of DET_HI past the shunt, against 12 mm in the first rev 0.3 layout. INLO's C22 sits
   straight below its pin.
@@ -356,7 +359,8 @@ capacitors (C35, C36, C37) and C25 moved from ENBL to VPSI:
   line from pin 17; TEMP, RSET, VCOM and VREF parts in two columns beside the chip, 1.5-6 mm of
   track each. The loop filter is a short spine at CP (pin 7). VTUNE drops to In1 at pin 20 and runs
   under the chip between the exposed pad vias, about 10 mm and buried between ground planes. TP2
-  sits next to the loop filter on a short In1 branch. Y1 is turned to face REFIN, with R14 at its
+  is outside the frame, 25 mm away on In1, behind R38 (10k) at the loop filter, so that trace hangs
+  off 10k instead of off the VTUNE node (a 10 Mohm meter reads 0.1 % low). Y1 is turned to face REFIN, with R14 at its
   output. Every detector capacitor is within 2.4 mm of its pin (pad centre to pin centre). AD8318's
   input supply VPSI (pins 3-4) has C25 (100p) and C24 (100n); C25 used to sit on ENBL (pin 16), which
   needs no decoupling and now goes straight to a +5VA via. The ADS1115's C31 is 2 mm from its supply
@@ -372,7 +376,9 @@ capacitors (C35, C36, C37) and C25 moved from ENBL to VPSI:
   for 0.5 mm at U3).
   U2's digital pins are fanned out by hand to vias, and from there run on locked In1 tracks to
   just outside the source frame (left of Y1, not under it), so none of them runs on B.Cu inside the
-  can. MUXOUT ends at TP3, now outside the frame, so it can be probed with the can fitted. Y1's
+  can. MUXOUT ends at TP3, outside the frame. Every test point is now just outside a frame, so
+  they can all be probed with the cans fitted: the rail ones (TP4, TP5) on locked In1 tracks from
+  a via in the pour, TP1 and TP6 routed. Y1's
   rail has a locked In1 track to U2, so the digital lines can't cut it off from the +3V3A pour.
 - **Ground:** three more vias round each cell feed via. Exposed-pad vias sit in a cross between 4
   paste windows (about 50 % of the pad) instead of inside them, so they don't wick the solder away.
@@ -395,19 +401,19 @@ be tested there: 100 pF from R5/R6's +3V3A pads to ground, and see whether the n
 (2026-11-19) found nothing that had to change before ordering. It found the 100 pF on ENBL instead
 of VPSI, three generated vias partly on pads, C31 14 mm from the ADS1115, the control lines on B.Cu
 in the source can, and R5's supply end still without a 100 pF, and corrected several numbers in
-these notes; all are fixed above. What remains, accepted:
+these notes; all are fixed above, along with three things first listed as accepted: pin 32 has its
+second capacitor now (C38, 100n 0402, left of C19), the Pico ERC error is gone, and the test points
+and J5 moved outside the frames. What remains, accepted:
 
-- VTUNE is about 17 mm from pin 20 to the filter, buried on In1 under U2, with TP2 on a 4.8 mm stub.
+- VTUNE is about 17 mm from pin 20 to the filter, buried on In1 under U2.
 - C11 (VCOM) is 6 mm and C14 (VP) 5 mm from their pins; every other U2/U3 capacitor is within 3 mm.
 - The nearest ground vias to each cell feed via are 2.9 mm away. The landing line's 1 mm coplanar
   gap doesn't allow closer ones.
 - MUXOUT runs 0.3 mm beside REFIN for about 4.5 mm between C18 and C19. It is set to digital lock
   detect, so it doesn't toggle once locked.
-- U2's pins 28 (DVDD) and 32 (SDVDD) have one capacitor each, 100n (C18) and 100p (C19), 2.25 mm
-  apart on the same In1 pour; pin 10 has C17 (100n) and C37 (100p). The top row has no room for a
-  second capacitor at each pin, and rev 0.2 locks with this.
-- TP2, TP4 and J5 are inside the source frame, TP1, TP5 and TP6 inside the detector one: probe them
-  before fitting the cans.
+- U2's pin 28 (DVDD) has one capacitor, C18 (100n); its 100 pF is C19 at pin 32, 2.25 mm away on
+  the same In1 node. Pin 32 has C19 and C38, pin 10 C17 and C37. C18 has C19 on one side and the
+  LD/PDBRF fan-out on the other, so there is no room for a second one, and rev 0.2 locks with less.
 - RFB+ passes 0.3 mm from the RFOUTA- termination; its pull-up R8 is 15 mm from the pin. Output B
   is off in normal use.
 - DET_TEMP runs 0.38 mm beside INHI for 0.5 mm at U3, and the +5VA escape 0.4 mm beside INLO for 1.7 mm.

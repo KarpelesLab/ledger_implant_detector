@@ -138,7 +138,7 @@ class Schematic:
             self.used[lib_id] = self.lib.get(lib_id)
         return self.used[lib_id]
 
-    def _instance(self, ref, lib_id, x, y, rot, props, pinnums, in_bom=True, on_board=True, key=None):
+    def _instance(self, ref, lib_id, x, y, rot, props, pinnums, in_bom=True, on_board=True, key=None, alternates=None):
         sym = self._use(lib_id)
         key = key or ref
         u = self.uid('sym/' + key)
@@ -151,7 +151,10 @@ class Schematic:
                 eff.append([S('hide'), S('yes')])
             node.append([S('property'), k, v, [S('at'), px, py, rot % 180], eff])
         for n in sorted(set(pinnums)):
-            node.append([S('pin'), n, [S('uuid'), self.uid('pin/%s/%s' % (key, n))]])
+            pn = [S('pin'), n, [S('uuid'), self.uid('pin/%s/%s' % (key, n))]]
+            if alternates and n in alternates:     # pin function picked from the symbol's alternates
+                pn.append([S('alternate'), alternates[n]])
+            node.append(pn)
         node.append([S('instances'), [S('project'), self.project,
                                       [S('path'), '/' + self.root_uuid, [S('reference'), ref], [S('unit'), 1]]]])
         self.items.append(node)
@@ -199,8 +202,9 @@ class Schematic:
         else:
             self.label(net, x, y, d)
 
-    def add(self, ref, lib_id, value, x, y, nets, rot=0, footprint=None, fields=None, in_bom=True, ref_pos=None, val_pos=None):
-        """nets: {pin_number: net_name or None (no-connect)}"""
+    def add(self, ref, lib_id, value, x, y, nets, rot=0, footprint=None, fields=None, in_bom=True, ref_pos=None, val_pos=None,
+            alternates=None):
+        """nets: {pin_number: net_name or None (no-connect)}; alternates: {pin_number: alternate name}"""
         sym = self._use(lib_id)
         x, y = snap(x, 2.54), snap(y, 2.54)
         pins = lib_pins(sym)
@@ -234,7 +238,7 @@ class Schematic:
                  'Description': (desc[0][2] if desc else '', x, y, True)}
         for k, v in (fields or {}).items():
             props[k] = (v, x, y, True)
-        self._instance(ref, lib_id, x, y, rot, props, [p['num'] for p in pins], in_bom=in_bom)
+        self._instance(ref, lib_id, x, y, rot, props, [p['num'] for p in pins], in_bom=in_bom, alternates=alternates)
 
         # stubs, de-duplicated by position (stacked pins)
         rx0, ry0, rx1, ry1 = x + sx0, y + sy0, x + sx1, y + sy1

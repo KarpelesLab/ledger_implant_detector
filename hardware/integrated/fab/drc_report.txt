@@ -1,5 +1,5 @@
 ** Drc report for integrated.kicad_pcb **
-** Created on 2026-11-19T16:41:42 **
+** Created on 2026-11-19T18:14:30 **
 ** Report includes: Errors, Warnings **
 
 ** Found 20 DRC violations **
@@ -38,11 +38,11 @@
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
     @(235.0000 mm, 116.0000 mm): Polygon on F.Silkscreen
-    @(269.8800 mm, 158.8900 mm): PTH pad 4 [/SYN_CLK] of U1
+    @(269.8800 mm, 141.1100 mm): PTH pad 37 [unconnected-(U1-3V3_EN-Pad37)] of U1
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
     @(235.0000 mm, 116.0000 mm): Polygon on F.Silkscreen
-    @(269.8800 mm, 141.1100 mm): PTH pad 37 [unconnected-(U1-3V3_EN-Pad37)] of U1
+    @(269.8800 mm, 158.8900 mm): PTH pad 4 [/SYN_CLK] of U1
 [silk_over_copper]: Silkscreen clipped by solder mask
     Local override; warning
     @(235.0000 mm, 116.0000 mm): Polygon on F.Silkscreen

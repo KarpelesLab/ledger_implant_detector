@@ -71,6 +71,8 @@ def gen():
     C('C36', '100p', 60, 128, '+3V3A', 'GND', fields={'Dielectric': 'C0G'})     # at R6's supply end (rev 0.3)
     # at R5's supply end, and pin 10's 100 pF: 0402, the only size that fits between R5 and C17 (rev 0.3)
     C('C37', '100p', 60, 135, '+3V3A', 'GND', fp=C0402, fields={'Dielectric': 'C0G'})
+    # pin 32's 100 nF beside C19 (100p), 0402 to fit left of it (rev 0.3, fourth review)
+    C('C38', '100n', 60, 142, '+3V3A', 'GND', fp=C0402)
     sch.add('J5', 'Connector:Conn_Coaxial', 'U.FL', 95, 100, {'1': 'RFB_OUT', '2': 'GND'},
             footprint='Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical', fields={'MPN': 'U.FL-R-SMT-1(80)', 'LCSC': 'C88374'})
 
@@ -145,7 +147,8 @@ def gen():
         '16': 'LCD_BL', '17': 'LCD_CS', '18': 'GND', '19': 'LCD_DC', '20': 'LCD_RST', '21': 'LED_G', '22': 'LED_R', '23': 'GND',
         '24': 'BTN', '25': 'GP19', '26': 'GP20', '27': 'GP21', '28': 'GND', '29': 'GP22', '30': 'RUN', '31': 'GP26',
         '32': 'GP27', '33': 'GND', '34': 'FAST_ADC', '35': None, '36': '+3V3', '37': None, '38': 'GND', '39': None, '40': 'VBUS'},
-        footprint='Module:RaspberryPi_Pico_Common_THT', fields={'MPN': 'SC1631', 'Manufacturer': 'Raspberry Pi'})
+        footprint='Module:RaspberryPi_Pico_Common_THT', fields={'MPN': 'SC1631', 'Manufacturer': 'Raspberry Pi'},
+        alternates={'33': 'GND'})       # AGND as its passive "GND" alternate: it's tied to GND here, not a second supply
     dnp('R31', 'R', 130, 205, 'DET_OUT', 'FAST_ADC')
     R('R32', '4.7k', 130, 212, 'I2C_SDA', '+3V3')
     R('R33', '4.7k', 130, 219, 'I2C_SCL', '+3V3')
@@ -182,8 +185,11 @@ def gen():
         '1': 'GND', '2': '+3V3', '3': 'VBUS', '4': 'GP19', '5': 'GP20', '6': 'GP21', '7': 'GP22', '8': 'GP26', '9': 'GP27',
         '10': 'ADC_3', '11': 'RUN', '12': 'GND'},
         footprint='Connector_PinHeader_2.54mm:PinHeader_1x12_P2.54mm_Vertical', in_bom=False)
-    for i, net in enumerate(('DET_OUT', 'SYN_VT', 'SYN_MUX', '+3V3A', '+5VA', 'ADC_3')):
-        sch.add('TP%d' % (i + 1), 'Connector:TestPoint', net, 345 + 20 * (i % 3), 265 + 20 * (i // 3), {'1': net}, footprint=TP, in_bom=False)
+    # TP2 reads VTUNE through R38: the pad sits outside the source frame, 25 mm away, and the resistor keeps
+    # that trace off the loop filter node (a 10 Mohm meter reads 0.1 % low)
+    R('R38', '10k', 325, 265, 'SYN_VT', 'SYN_VT_TP')
+    for i, net in enumerate(('DET_OUT', 'SYN_VT_TP', 'SYN_MUX', '+3V3A', '+5VA', 'ADC_3')):
+        sch.add('TP%d' % (i + 1), 'Connector:TestPoint', net, 345 + 20 * (i % 3), 265 + 25 * (i // 3), {'1': net}, footprint=TP, in_bom=False)
 
     bad = sch.check_overlaps()
     if bad:
@@ -195,9 +201,8 @@ def gen():
 def project_files():
     pro = os.path.join(PRJ, NAME + '.kicad_pro')
     if not os.path.exists(pro):
-        # the stock ITR8307 symbol (rev 0.1) calls its emitter a power output. This doesn't cover the Pico's
-        # GND/AGND pair (both power outputs): KiCad takes that error from its pin map, not from this setting,
-        # so ERC keeps one accepted error there
+        # the stock ITR8307 symbol (rev 0.1) calls its emitter a power output. (The Pico's GND/AGND pair is
+        # handled in the schematic: AGND uses its passive alternate)
         with open(pro, 'w') as f:
             json.dump({'meta': {'filename': NAME + '.kicad_pro', 'version': 3},
                        'erc': {'rule_severities': {'pin_to_pin': 'warning'}},
