@@ -116,7 +116,7 @@ def gen():
     R('R26', '0', 275, 93, 'DET_OUT', 'DET_SET')
     for i, (val) in enumerate(('100n', '100p', '100n', '100p')):
         C('C%d' % (24 + i), val, 305, 85 + 7 * i, '+5VA', 'GND')
-    # FB1 and its bulk cap sit at U3: +5VA is a plane on In1 under the detector block (rev 0.3)
+    # FB1 where VBUS enters the detector frame, its bulk cap C35 at U3: +5VA is a plane on In1 under the detector block (rev 0.3)
     sch.add('FB1', 'Device:FerriteBead', '600R', 330, 85, {'1': 'VBUS', '2': '+5VA'}, rot=90, footprint=L0603)
     C('C35', '10u', 305, 113, '+5VA', 'GND', fp=C0805, fields={'Voltage': '10V', 'Dielectric': 'X5R'})
     sch.add('U4', 'Analog_ADC:ADS1115IDGS', 'ADS1115', 345, 130, {

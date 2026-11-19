@@ -346,8 +346,9 @@ cell from output B) should confirm it. Rev 0.3 changes only the layout, except f
   under the chip between the exposed pad vias, about 10 mm and buried between ground planes. TP2
   sits next to the loop filter on a short In1 branch. Y1 is turned to face REFIN, with R14 at its
   output. Every detector part is within 2 mm of its pin.
-- **+5VA is a pour on In1** under the detector, like +3V3A under the source. FB1 and a new 10 uF
-  bulk capacitor (C35) moved from the Pico to U3. Rev 0.2 ran +5VA 179 mm from the Pico, between
+- **+5VA is a pour on In1** under the detector, like +3V3A under the source. FB1 moved from the Pico
+  to where VBUS enters the detector frame, so VBUS stays outside the can, and a new 10 uF bulk
+  capacitor (C35) sits at U3. Rev 0.2 ran +5VA 179 mm from the Pico, between
   C21's pads and along the INHI line.
 - **The router is kept out of** the gap between the two pads of every small part, and In1 under
   both chips. A keepout along the 50 ohm chains stalled the router, so instead the generator

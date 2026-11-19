@@ -670,8 +670,9 @@ def support_parts(bd):
     c25 = at_net(bd, 'C25', '+5VA')
     bd.via(c25[0], c25[1] - 1.1, '+5VA', 0.6, 0.3)
     bd.track(c25, (c25[0], c25[1] - 1.1), W, '+5VA')
-    # supply filter and bulk at the detector, on the +5VA pour
-    place_at(bd, 'FB1', 18.5, 91.0, False, '+5VA', (25.0, 91.0))
+    # FB1 where VBUS enters the can, so VBUS stays outside it; the In1 pour carries +5VA to U3,
+    # with the 10 uF bulk C35 at the chip
+    place_at(bd, 'FB1', 49.0, 75.6, False, '+5VA', (40.0, 75.6))
     place_at(bd, 'C35', 18.5, 93.2, False, '+5VA', (25.0, 93.2))
 
 
