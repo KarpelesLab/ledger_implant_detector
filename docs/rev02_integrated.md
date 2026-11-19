@@ -414,6 +414,12 @@ and J5 moved outside the frames. What remains, accepted:
 - U2's pin 28 (DVDD) has one capacitor, C18 (100n); its 100 pF is C19 at pin 32, 2.25 mm away on
   the same In1 node. Pin 32 has C19 and C38, pin 10 C17 and C37. C18 has C19 on one side and the
   LD/PDBRF fan-out on the other, so there is no room for a second one, and rev 0.2 locks with less.
+- C10-C12 (TEMP, VREF, VCOM) are 100 nF. A review recalled 10 uF from the datasheet; its
+  application circuit (Figure 34) shows 0.1 uF with 10 pF on each pin, so the values stand.
+- C21/C22 (INHI coupling, INLO to ground) stay 1 nF, the datasheet's suggested value. A review
+  proposed 100 pF because they are past self-resonance in the band, but there the 0603 package
+  inductance sets the impedance: about +j6.9 ohm at 1.4 GHz with 1 nF and +j5.9 ohm with 100 pF.
+  The difference is smooth across the band and cancels in the wallet-minus-empty reading.
 - RFB+ passes 0.3 mm from the RFOUTA- termination; its pull-up R8 is 15 mm from the pin. Output B
   is off in normal use.
 - DET_TEMP runs 0.38 mm beside INHI for 0.5 mm at U3, and the +5VA escape 0.4 mm beside INLO for 1.7 mm.
